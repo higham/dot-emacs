@@ -1,10 +1,5 @@
 ;; -*- coding: utf-8 orgstruct-heading-prefix-regexp: ";;; "; -*-
 
-;; Local Variables:
-;; eval: (orgstruct-mode 1)
-;; orgstruct-heading-prefix-regexp: ";;; "
-;; End:
-
 ;;; * Initialization
 (setq inhibit-splash-screen t)       ; Don't want splash screen.
 (setq inhibit-startup-message t)     ; Don't want any startup message.
@@ -28,6 +23,8 @@
 (require 'diminish)
 (require 'bind-key)
 (setq use-package-verbose t)
+
+(bind-key* "C-z" 'scroll-up-keep-cursor)
 
 ;; http://endlessparentheses.com/debug-your-emacs-init-file-with-the-bug-hunter.html
 ;; M-x bug-hunter-file [gives error about auctex].
@@ -177,7 +174,6 @@
 
 ;; ------------------------------------------------
 
-; ------- Converted to use-package  (done) -------------------
 (use-package smex
   :load-path "~/dropbox/elisp/smex-master"
   :init (smex-initialize)
@@ -188,23 +184,6 @@
   :config
   (setq smex-save-file "~/dropbox/.smex-items")
 )
-
-;; (add-to-list 'load-path "~/dropbox/elisp/smex-master")
-;; (require 'smex)
-;; (smex-initialize)
-;; (global-set-key (kbd "M-x") 'smex)
-;; (global-set-key (kbd "M-X") 'smex-major-mode-commands)
-;; ;; This is your old M-x.
-;; (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
-;; (setq smex-save-file "~/dropbox/.smex-items")
-;  ---------------------------------------------------
-
-;; ---------------------------------------
-;; I'm using use-package only for the bind-key macro.
-;; (add-to-list 'load-path "~/dropbox/elisp/use-package-master")
-;; (require 'use-package)
-(bind-key* "C-z" 'scroll-up-keep-cursor)
-;; ---------------------------------------
 
 ; ----------------- Neatly load some packages -----------------------
 ;; Dash is needed by ace-jump-buffer and wrap-region.
@@ -282,14 +261,12 @@
     (global-set-key (kbd "C-0") 'ido-recentf-open))
 
 ; ----------------------------------------------------------------
-
 ; Interactive macro expansion as used by Jwiegley.
 ; https://github.com/joddie/macrostep
 (use-package macrostep
   :load-path "~/dropbox/elisp/macrostep"
   :bind ("C-c e m" . macrostep-expand))
 
-; ------- Converted to use-package  (done) -------------------
 ;; http://pages.sachachua.com/.emacs.d/Sacha.html
 (use-package undo-tree
 ;; With defer, the undo-tree-mode doesn't get properly set!
@@ -375,8 +352,6 @@
  (setq helm-bibtex-pdf-open-function    ;; Open PDF in Evince
     (lambda (fpath) (shell-command
              (concat "start /pgm SumatraPDF.exe -reuse-instance " fpath )))))
-
-; ------- Converted to use-package  (done) -------------------
 
 (use-package yasnippet
   :load-path "~/dropbox/elisp/yasnippet"
@@ -1890,7 +1865,6 @@ the character typed."
 ;; Thunderbird email buffers.
 (add-to-list 'auto-mode-alist '("\\.eml$" . mail-mode))
 
-; ------- Converted to use-package  (done) -------------------
 (use-package magit
   :load-path "~/Dropbox/elisp/magit-master"
   :defer t
@@ -2730,3 +2704,9 @@ table, obtained by prompting the user."
 
 ;;; * Mail
 (load-file "~/Dropbox/.emacs-mail-setup")
+
+;;; * Local Variables
+;; Local Variables:
+;; eval: (orgstruct-mode 1)
+;; orgstruct-heading-prefix-regexp: ";;; "
+;; End:

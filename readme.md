@@ -10,7 +10,7 @@ It builds on the work of many others, including
 I run Emacs on both Windows and Mac machines.  On Windows, my ~/.emacs file
 (called .emacs_windows in this repository) loads .~/dropbox/.emacs and
 then ./dropbox/.emacs_custom-windows.
-The setup for the Mac is similar.
+The setup for the Mac is analogous.
 
 * Some of the .emacs code uses conditional tests to see whether it is
   running on a Windows machine or a Mac machine and take different action
@@ -23,6 +23,9 @@ The setup for the Mac is similar.
   packages.  Not everything is converted and I may convert other package to
   load this way.
 
+* Orgstruct mode is turned on by the first line of the file, so pressing
+  tab or shift-tab will collapse or expand the file into or from headings,
+  as in Org mode.
 
 <!---
 Some more background information is given in the blog post ...
