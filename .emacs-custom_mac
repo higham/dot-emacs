@@ -1,0 +1,32 @@
+;; Move from main .emacs as was giving error on Windows.
+;; Let Alt-3 generate hash symbol on Mac.
+;; This doesn't work if inside the darwin test - why?
+;; (if (eq system-type 'darwin)(
+(fset 'insertPound "#")
+(global-set-key (kbd "M-£") 'insertPound)
+;;))
+
+;; For Mac.
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(LaTeX-clean-intermediate-suffixes (quote ("\\.blg" "\\.brf" "\\.fot" "\\.glo" "\\.gls" "\\.ilg" "\\.lof" "\\.log" "\\.lot" "\\.nav" "\\.out" "\\.snm" "\\.toc" "\\.url" "\\.synctex\\.gz")))
+ '(LaTeX-command "latex -synctex=1")
+ '(curchg-default-cursor-type (quote box))
+ '(curchg-overwrite/read-only-cursor-type (quote bar))
+ '(gud-gdb-command-name "gdb --annotate=1")
+ '(large-file-warning-threshold nil)
+ '(truncate-lines t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(flyspell-duplicate ((t (:foreground "green" :underline "DarkOrange"))))
+ '(flyspell-incorrect ((t (:background "black" :foreground "yellow" :underline "red"))))
+ '(default ((t (:inherit nil :stipple nil :background "black" :foreground "white" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 180 :width normal :foundry "outline" :family "Monaco"))))
+ '(font-latex-slide-title-face ((((class color) (background dark)) (:inherit nil :foreground "yellow"))))
+ '(font-latex-verbatim-face ((((class color) (background dark)) (:inherit nil :foreground "burlywood"))))
+ '(region ((t (:background "grey40")))))

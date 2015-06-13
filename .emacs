@@ -55,12 +55,12 @@
 
 (defun system-is-MBP15 ()
 (interactive)
-"Return true if the system we are running on my MacBook Pro 15"
+"Return true if the system we are running on MacBook Pro 15"
 (string-equal system-name "MacBook-15-NJH.local"))
 
 (defun system-is-MBP13R ()
 (interactive)
-"Return true if the system we are running on my MacBook Pro 13 Retina"
+"Return true if the system we are running on MacBook Pro 13 Retina"
 ; Not sure why name varies.
 (or (string-equal system-name "MacBook-13R-NJH.local")
     (string-equal system-name "macbook13-2013") ;; Emacs 24.5.1
@@ -70,17 +70,17 @@
 
 (defun system-is-Dell ()
 (interactive)
-"Return true if the system we are running on my Dell Xeon"
+"Return true if the system we are running on Dell Xeon"
 (string-equal system-name "Dell-Nick"))
 
 (defun system-is-Chill ()
 (interactive)
-"Return true if the system we are running on my Scan"
+"Return true if the system we are running on Chillblast"
 (string-equal system-name "Nick-Chill"))
 
 (defun system-is-iMac ()
 (interactive)
-"Return true if the system we are running on my Scan"
+"Return true if the system we are running on iMac"
 (string-equal system-name "Nick-iMac.local"))
 
 ;;; * Backups

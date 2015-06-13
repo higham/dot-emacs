@@ -1,0 +1,21 @@
+(if (version< emacs-version "25.0")
+    (progn (load-file "~/dropbox/.emacs_for_24"))  ;; Emacs < 25.0
+    (progn (load-file "~/dropbox/.emacs")))        ;; Emacs >= 25.0
+
+
+;; (load-file "~/dropbox/.emacs")
+;; (load-file "s:/.emacs")
+
+(setq custom-file "~/Dropbox/.emacs-custom_windows")
+(load custom-file)
+
+;;; This was installed by package-install.el.
+;;; This provides support for the package system and
+;;; interfacing with ELPA, the package archive.
+;;; Move this code earlier if you want to reference
+;;; packages in your .emacs.
+;; (when
+;;     (load
+;;      (expand-file-name "~/.emacs.d/elpa/package.el"))
+;;   (package-initialize))
+(put 'narrow-to-region 'disabled nil)
