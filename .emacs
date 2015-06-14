@@ -820,6 +820,7 @@ narrowed."
 ;; ----------------------------------------------------------
 ;; From http://lumiere.ens.fr/~guerry/u/emacs.el
 (add-hook 'emacs-lisp-mode-hook 'turn-on-orgstruct++)
+(add-hook 'mail-mode-hook 'turn-on-orgstruct++)
 ;;----------------------------------------------
 
 (use-package multiple-cursors
@@ -947,7 +948,7 @@ Works in Microsoft Windows, Mac OS X, Linux."
 (add-to-list 'default-frame-alist '(background-color . "black"))
 (add-to-list 'default-frame-alist '(foreground-color . "white"))
 ;; Are last two lines needed - seemed to have no effect.
-;; Black b/g was set by line -4 of emaacs-sustom_windows.
+;; Black b/g was set by line -4 of emacs-custom_windows.
 (set-foreground-color "white")
 (set-background-color "black")
 (set-face-background 'region "gray") ; Set region background color
@@ -1482,7 +1483,7 @@ See also: 'copy-to-register-1', 'insert-register'."
 
 ;;----------------------------------------------------
 ;; http://ergoemacs.org/emacs/elisp_compact_empty_lines.html
-;; Suspect not elegant coding, but not trivial to do this other ways!
+;; Suspect not most elegant coding, but not trivial to do this other ways!
 (defun xah-clean-whitespace ()
   "Delete trailing whitespace, and replace sequence of newlines into just 2.
 Work on whole buffer, or text selection."
@@ -1514,16 +1515,6 @@ Work on whole buffer, or text selection."
     (setq fill-column (if (= fill-column 75) 72 75)))
 (global-set-key [S-f2]     'toggle-fill-column)
 (global-set-key [S-C-f2]   'fci-mode)
-
-;; I'd prefer to map Caps Lock to Meta, but I don't think that can be done
-;; in Emacs so try this for now.
-;; http://emacs-fu.blogspot.com/2008/12/remapping-caps-lock.html
-; (setq w32-enable-caps-lock nil)
-; (global-set-key [capslock] 'execute-extended-command)
-
-;; (global-unset-key (kbd "C-z"));  Don't want C-z to suspend-frame.
-
-;; (global-set-key (kbd "C-x a") 'append-to-buffer)
 
 ;; Next line not a good idea as it affects all searches, incl. RefTeX.
 ;; (setq-default case-fold-search nil) ; Make searches case sensitive.
@@ -2293,7 +2284,7 @@ the character typed."
 (setq TeX-view-program-selection '((output-pdf "Sumatra") (output-dvi "dviout")))
 ))
 
-;; Following dind't work when put within previous progn.
+;; Following didn't work when put within previous progn.
 ;; http://william.famille-blum.org/blog/static.php?page=static081010-000413
 (if (system-is-windows)
 (require 'sumatra-forward)   ; For forward search.
@@ -2683,6 +2674,8 @@ table, obtained by prompting the user."
  '((calc . t)
    ))
 
+;;; * Misc
+
 ;; Useful functions for generating html from org, e.g. to paste into
 ;; Wordpress.
 
@@ -2702,7 +2695,6 @@ table, obtained by prompting the user."
    (org-back-to-heading)
    (org-end-of-subtree)))
 
-;;; * Mail
 (load-file "~/Dropbox/.emacs-mail-setup")
 
 ;;; * Local Variables
