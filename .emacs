@@ -2522,7 +2522,9 @@ return `nil'."
 ;; Latter line doeesn't work in ORG 8.0.
 ;             (local-set-key (kbd "<f5>") 'org-latex-export-to-pdf)
            (local-set-key (kbd "<f5>")
-           (lambda () (interactive) (save-buffer) (org-latex-export-to-pdf)))
+;;           (lambda () (interactive) (save-buffer) (org-latex-export-to-pdf)))
+           (lambda () (interactive) (save-buffer)
+                      (org-open-file (org-latex-export-to-pdf))))
 ))
 
 ;; Link abbrevations.
