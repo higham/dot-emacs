@@ -2519,7 +2519,7 @@ return `nil'."
 	     (local-unset-key (kbd "C-c [")) ; Prefer my-cite
 ;;	     (local-unset-key (kbd "C-]")) ; Prefer nothing
 ;;             (local-set-key (kbd "<f5>") 'org-export-as-pdf)
-;; Latter line doeesn't work in ORG 8.0.
+;; Latter line doesn't work in ORG 8.0.
 ;             (local-set-key (kbd "<f5>") 'org-latex-export-to-pdf)
            (local-set-key (kbd "<f5>")
 ;;           (lambda () (interactive) (save-buffer) (org-latex-export-to-pdf)))

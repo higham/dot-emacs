@@ -20,13 +20,12 @@ The setup for the Mac is analogous.
   things I am using.
 
 * I have recently started using John Wiegley's use-package for loading
-  packages.  Not everything is converted and I may convert other package to
+  packages.  Not everything is converted and I may convert other packages to
   load this way.
 
 * Orgstruct mode is turned on by the first line of the file, so pressing
   tab or shift-tab will collapse or expand the file into or from headings,
   as in Org mode.
 
-<!---
-Some more background information is given in the blog post ...
--->
+Some more background information is given in the blog post
+[My Dot Emacs] (https://nickhigham.wordpress.com/2015/06/18/my-dot-emacs).
