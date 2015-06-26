@@ -2455,6 +2455,7 @@ return `nil'."
 (setq org-directory "~/Dropbox/org")
 
 (require 'ox-latex)
+;; extarticle allows font sizes 9, 14, 17, 20pt.
 (add-to-list 'org-latex-classes
   '("extarticle"
      "\\documentclass[14pt]{extarticle}"
@@ -2470,6 +2471,21 @@ return `nil'."
 '("memoir"
 "\\documentclass{memoir}
 [DEFAULT-PACKAGES]
+[PACKAGES]
+[EXTRA]"
+("\\section{%s}" . "\\section{%s}")
+("\\subsection{%s}" . "\\subsection{%s}")
+("\\subsubsection{%s}" . "\\subsubsection{%s}")
+("\\paragraph{%s}" . "\\paragraph{%s}")
+("\\subparagraph{%s}" . "\\subparagraph{%s}")))
+
+;; This turns off default packages, one of which (textcomp) messes up
+;; bullets in itemize.  May only need this when using Lucida.
+;; Don't think I can specify packages to load here.
+(add-to-list 'org-latex-classes
+'("basic"
+"\\documentclass[12pt]{extarticle}
+[NO-DEFAULT-PACKAGES]
 [PACKAGES]
 [EXTRA]"
 ("\\section{%s}" . "\\section{%s}")
@@ -2654,8 +2670,7 @@ table, obtained by prompting the user."
   :group 'org-table)
 
 (if (system-is-windows)
-;; This doesn't work!  Can't work out why.
-;; PDFs visited in Org-mode are opened in Sumatra (not in the default choice)
+;; Open PDFs visited in Org-mode in Sumatra (not the default choice, Acrobat).
 ;; http://stackoverflow.com/a/8836108/789593
 (add-hook 'org-mode-hook
    '(lambda ()
@@ -2663,6 +2678,14 @@ table, obtained by prompting the user."
 ;;      (add-to-list 'org-file-apps '("\\.pdf\\'" . "d:\\bat\\sumatra_emacs.bat %s")))
       (add-to-list 'org-file-apps '("\\.pdf\\'" . "\"C:/Program Files (x86)/SumatraPDF/SumatraPDF.exe\" -reuse-instance %s")))
 ))
+
+;; Open PDFs in Skim instead of Acrobat.
+(if (system-is-mac)
+(add-hook 'org-mode-hook
+   '(lambda ()
+      (delete '("\\.pdf\\'" . default) org-file-apps)
+      (add-to-list 'org-file-apps '("\\.pdf\\'" . "skim %s")
+))))
 
 ;; Mobile org
 ;; Set to the name of the file where new notes will be stored
