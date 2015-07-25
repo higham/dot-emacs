@@ -35,7 +35,9 @@
       (1.96 . 3.58)
       (2.6 . 4.14)
       (1.7000000000000002 . 3.44)))))
- '(package-selected-packages (quote (helm smex color-theme chess browse-kill-ring)))
+ '(package-selected-packages
+   (quote
+    (magit helm smex color-theme chess browse-kill-ring)))
  '(show-paren-mode t)
  '(tool-bar-mode nil)
  '(truncate-lines t)

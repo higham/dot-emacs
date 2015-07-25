@@ -163,8 +163,9 @@
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
 ;;        ("marmalade" . "http://marmalade-repo.org/packages/")
-        ("Tromey" . "http://tromey.com/elpa/")
-        ("melpa" . "http://melpa.milkbox.net/packages/")
+;;        ("Tromey" . "http://tromey.com/elpa/")
+;;        ("melpa" . "http://melpa.milkbox.net/packages/")
+        ("melpa" . "http://melpa.org/packages/")
         ))
 (package-initialize)
 
@@ -283,7 +284,7 @@
 ; (global-undo-tree-mode)
 ; ------------------------------------------------------------
 
-(add-to-list 'load-path "~/dropbox/elisp/browse-kill-ring-master")
+(add-to-list 'load-path "~/dropbox/elisp/browse-kill-ring")
 (require 'browse-kill-ring)
 (browse-kill-ring-default-keybindings)
 
@@ -296,11 +297,12 @@
 (global-set-key (kbd "M-<f12>")
   '(lambda () (interactive) (load-file "~/.emacs")))
 
-; git-modes
-(add-to-list 'load-path "~/dropbox/elisp/git-modes-master")
-(require 'git-commit-mode)
-(require 'gitconfig-mode)
-(require 'gitignore-mode)
+;; These not needed with Magit 2.1.0.
+;; git-modes
+;; (add-to-list 'load-path "~/dropbox/elisp/git-modes-master")
+;; require 'git-commit-mode)
+;; (require 'gitconfig-mode)
+;; (require 'gitignore-mode)
 
 ;; Helm ------------------------------------------------
 ;; If I decide to convert to use-package, see
@@ -631,6 +633,7 @@ Emacs buffers are those whose name starts with *."
 (defhydra hydra-bib (:color blue)
   "bib"
   ("<f3>" helm-bibtex "helm-bibtex")
+  ("<f4>" helm-resume "helm-resume")
   ("b"
    (lambda () (interactive) (dired "~/bib"))
    "bib")
@@ -1857,9 +1860,8 @@ the character typed."
 (add-to-list 'auto-mode-alist '("\\.eml$" . mail-mode))
 
 (use-package magit
-  :load-path "~/Dropbox/elisp/magit-master"
   :defer t
-  :diminish magit-auto-revert-mode
+;; :diminish magit-auto-revert-mode
 
   :bind ("C-M-g" . magit-status)
   :preface
@@ -1977,13 +1979,13 @@ the character typed."
 
    (replace-string "" "`" nil (point-min) (point-max))  ; opening single quote
    (replace-string "" "'" nil (point-min) (point-max))  ; closing single quote
-   (replace-string "" "\"" nil (point-min) (point-max))  
-   (replace-string "" "\"" nil (point-min) (point-max))  
-   (replace-string "" "-" nil (point-min) (point-max))  
+   (replace-string "" "\"" nil (point-min) (point-max))
+   (replace-string "" "\"" nil (point-min) (point-max))
+   (replace-string "" "-" nil (point-min) (point-max))
 ))
 
 ;; http://stackoverflow.com/questions/730751/hiding-m-in-emacs
-;; Get rid of "^M" displayed in file (Emacs will have set Unix mode). 
+;; Get rid of "^M" displayed in file (Emacs will have set Unix mode).
 
 (defun dos2unix ()
   "Replace DOS eolns CR LF with Unix eolns CR"
@@ -2024,7 +2026,8 @@ the character typed."
 (add-hook 'bibtex-mode-hook 'my-bibtex-mode-hook)
 
 ;; BibTeX mode.
-(setq bibtex-string-files '("strings.bib"))
+;; (setq bibtex-string-files '("strings.bib"))
+(setq bibtex-string-file-path '("~/texmf/bibtex/bib/"))
 (setq bibtex-field-delimiters 'double-quotes)
 ;; Can't match my key exactly - compromise on 2 chars from each name.
 (setq bibtex-autokey-names-stretch 3);  Use up to 4 names in total
@@ -2724,6 +2727,6 @@ table, obtained by prompting the user."
 
 ;;; * Local Variables
 ;; Local Variables:
-;; eval: (orgstruct-mode 1)
+;; eval: (orgstruct-mode 1).
 ;; orgstruct-heading-prefix-regexp: ";;; "
 ;; End:
