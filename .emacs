@@ -11,7 +11,8 @@
 (mouse-avoidance-mode 'exile)        ; Move mouse pointer out of way of cursor.
 
 (setq confirm-nonexistent-file-or-buffer nil)
-(fset 'yes-or-no-p 'y-or-n-p) ;; Change yes/no questions to y/n type.
+(fset 'yes-or-no-p 'y-or-n-p)        ; Change yes/no questions to y/n type.
+(setq default-input-method 'TeX)     ; For C-\.
 
 ;; For packages I've downloaded.
 (add-to-list 'load-path "~/Dropbox/elisp")
@@ -63,6 +64,7 @@
     (string-equal system-name "macbook13-2013") ;; Emacs 24.5.1
     (string-equal system-name "MacBook13-2013.local")
     (string-equal system-name "Fran-MBP13.local")
+    (string-equal system-name "Fran-MBP13")
     (string-equal system-name "macbook-13r-njh") ))
 
 (defun system-is-Dell ()
@@ -185,6 +187,14 @@
   :config
   (setq smex-save-file "~/dropbox/.smex-items")
 )
+
+(use-package shrink-whitespace
+  :load-path "~/dropbox/elisp/shrink-whitespace"
+  :bind ("M-SPC". shrink-whitespace)
+)
+
+;; http://pragmaticemacs.com/emacs/instant-scratch-buffer-for-current-mode/
+(require 'scratch)
 
 ; ----------------- Neatly load some packages -----------------------
 ;; Dash is needed by ace-jump-buffer and wrap-region.
@@ -341,8 +351,6 @@
                                 "~/texmf/bibtex/bib/njhigham_extra.bib"
                                 ))
 
-(setq helm-bibtex-library-path "~/pdf_papers")
-;; Multiple dirs not supported.
 (setq helm-bibtex-library-path '("~/pdf_papers" "~/pdf_papers/higham"
                                 "~/pdf_books"))
 
@@ -471,6 +479,18 @@
 
 ;; Autoindent (return acts as C-j).
 (define-key global-map (kbd "RET") 'newline-and-indent)
+
+;; http://www.wisdomandwonder.com/article/9862/handling-4-kinds-of-return-in-org-mode
+(defun gcr/smart-open-line ()
+  "Insert a new line, indent it, and move the cursor there.
+   The current line is left alone, a new line is inserted, indented,
+   and the cursor is moved there."
+  (interactive)
+  (move-end-of-line nil)
+  (newline-and-indent))
+(global-set-key (kbd "S-<return>") 'gcr/smart-open-line)
+;; Next command avoids any special Org indentation.
+(global-set-key (kbd "C-M-<return>") 'electric-indent-just-newline)
 
 ;;------------------------
 (add-to-list 'load-path "~/dropbox/elisp/git-gutter-master")
@@ -611,10 +631,10 @@ Emacs buffers are those whose name starts with *."
 (add-to-list 'load-path "~/dropbox/elisp/hydra")
 (require 'hydra)
 (global-set-key (kbd "C-x m") 'hydra-major/body)
-(global-set-key (kbd "<f3>")   'hydra-bib/body)
+(global-set-key (kbd "<f3>")   'hydra-bib-etc/body)
 (global-set-key (kbd "C-<f3>") 'hydra-dired/body)
 
-(defhydra hydra-major (:color blue)
+(defhydra hydra-major (:color blue :columns 4)
   "major-mode"
   ("b" bibtex-mode "bibtex")
   ("l" latex-mode "latex")
@@ -630,7 +650,7 @@ Emacs buffers are those whose name starts with *."
   ("u" linum-mode "lin-num")
   ("q" nil "cancel")
 )
-(defhydra hydra-bib (:color blue)
+(defhydra hydra-bib-etc (:color blue :columns 4)
   "bib"
   ("<f3>" helm-bibtex "helm-bibtex")
   ("<f4>" helm-resume "helm-resume")
@@ -661,6 +681,7 @@ Emacs buffers are those whose name starts with *."
    ("x"
     (lambda () (interactive) (switch-to-buffer "*scratch*"))
     "scratch*")
+   ("z" scratch "scratch-make")
 )
 
 (defhydra hydra-dired (:color blue)
@@ -778,13 +799,20 @@ narrowed."
 (setq b2 (point))
 (set-mark b1)
 ))
-(add-hook 'LaTeX-mode-hook '(lambda () (local-set-key (kbd "C-$")
-                          'select-text-in-dollars)))
-
 (add-hook 'LaTeX-mode-hook
-	  '(lambda()
-     	     (local-unset-key (kbd "C-c C-d")) ; Prefer date.
-	     ))
+          '(lambda ()
+              (local-set-key (kbd "C-$") 'select-text-in-dollars))
+              (local-unset-key (kbd "C-c C-d")) ; Prefer date.
+;;              (define-key LaTeX-mode-map (kbd "<S-C-f12>") 'TeX-next-error)
+	      )  
+;; Not sure why this doesn't work within the add-hook.
+(eval-after-load 'latex
+    '(define-key LaTeX-mode-map (kbd "<S-C-f12>") 'TeX-next-error))
+
+;; (add-hook 'LaTeX-mode-hook
+;; 	  '(lambda()
+;;      	     (local-unset-key (kbd "C-c C-d")) ; Prefer date.
+;; 	     ))
 
 ;; ----------------------------------------------------------
 (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-mode-master")
@@ -1556,11 +1584,12 @@ Work on whole buffer, or text selection."
 With arg, repeat; negative arg -N means kill back to Nth start of sentence."
   (interactive "p")
   (progn
-    (setq sentence-end-double-space t)
-    (kill-sentence arg)
     (setq sentence-end-double-space nil)
-))
-(global-set-key (kbd "M-k") 'kill-sentence)
+;;    (kill-sentence arg)  ;; Next line is letter with backward-char added.
+    (kill-region (point) (progn (forward-sentence arg) (backward-char) (point))))
+    (setq sentence-end-double-space t)
+)
+(global-set-key (kbd "M-k") 'my-kill-sentence)
 ;; Next function works OK as is.
 (global-set-key (kbd "C-M-k") 'backward-kill-sentence)
 
@@ -1614,6 +1643,7 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (global-set-key [M-C-f12]    'toggle-frame-fullscreen)
 (global-set-key [S-C-f12]    'text-scale-adjust)
 
+;; Spell checking
 (global-set-key [f10]        'query-replace)
 ;; (global-set-key [S-f10]      'ispell-buffer)
 (global-set-key [C-f10]      'flyspell-region)  ;; Default paragraph?
@@ -1622,6 +1652,32 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (global-set-key [S-f10]      'flyspell-auto-correct-word)
 ;; There is no "previous error" command!
 (global-set-key [M-f10]      'flyspell-goto-next-error)
+
+(setq ispell-dictionary "american")   ; Set the default dictionary.
+
+;; To give Mac same mouse button behavior as Windows:
+;; https://joelkuiper.eu/spellcheck_emacs
+(if (system-is-mac)
+(eval-after-load "flyspell"
+  '(progn
+     (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
+     (define-key flyspell-mouse-map [mouse-3] #'undefined))))
+
+;; Not sure why local-unset-key trick doesn't work.  This does the job:
+;; http://stackoverflow.com/questions/16084022/emacs-flyspell-deactivate-c-key-binding
+(eval-after-load "flyspell"
+  '(define-key flyspell-mode-map (kbd "C-c $") nil)) ;; Prefer Org-mode's key.
+
+;; Enable flyspell in various modes.
+(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'org-mode-hook 'flyspell-mode)
+;; Enable for tex-mode.
+(add-hook 'latex-mode-hook 'flyspell-mode)
+;; Or if you use AUCTeX for latex.
+(add-hook 'LaTeX-mode-hook 'flyspell-mode)
+(add-hook 'BibTeX-mode-hook 'flyspell-mode)
+(add-hook 'Lisp-mode-hook 'flyspell-mode)
+(add-hook 'matlab-mode-hook 'flyspell-mode)
 
 ;; Font size - no effect with fixed-sys font in Windows.
 (define-key global-map (kbd "C-M-+") 'text-scale-increase)
@@ -1780,9 +1836,9 @@ If region is active, apply to active region instead."
 (global-set-key [\C-kp-right] 'viper-forward-Word)
 (global-set-key [\C-kp-left]  'viper-backward-Word)
 
-;; Needed for Mac, but not for Windows?
-;; (global-set-key [C-right] 'viper-forward-word) ; keypad cursor key
-(global-set-key [C-right] 'viper-forward-Word) ; keypad cursor key
+;; Needed for Mac.  On Windows this is for middle cluster.
+(global-set-key [C-right] 'viper-forward-Word)  ; keypad cursor key
+(global-set-key [C-left]  'viper-backward-Word) ; keypad cursor key
 ;; -------------------------------------------------
 
 (defun my-transpose-word ()
@@ -2026,8 +2082,10 @@ the character typed."
 (add-hook 'bibtex-mode-hook 'my-bibtex-mode-hook)
 
 ;; BibTeX mode.
-;; (setq bibtex-string-files '("strings.bib"))
-(setq bibtex-string-file-path '("~/texmf/bibtex/bib/"))
+(setq bibtex-string-files '("strings.bib"))
+;; Does removing trailing / on next line cure
+;; bibtex-parse-buffers-stealthily errors?
+(setq bibtex-string-file-path '("~/texmf/bibtex/bib"))
 (setq bibtex-field-delimiters 'double-quotes)
 ;; Can't match my key exactly - compromise on 2 chars from each name.
 (setq bibtex-autokey-names-stretch 3);  Use up to 4 names in total
@@ -2050,6 +2108,17 @@ the character typed."
 (local-set-key (kbd "C-c m") 'my-cite))
 
 (global-set-key (kbd "C-c [") 'reftex-citation) ;; For all modes.
+
+;; Customize BibTeX bibtex-clean-entry.
+;; That command doesn't work properly on the Mac - unclear why.
+;; E.g. https://github.com/pcdavid/config/blob/master/emacs/feature-latex.el
+(setq bibtex-entry-format
+      `(("opts-or-alts", "page-dashes", "required-fields",
+         "numerical-fields", "whitespace", "last-comma", "delimiter",
+         "unify-case","sort-fields"
+)))
+(setq bibtex-field-delimiters 'double-quotes)
+(setq bibtex-entry-delimiters 'braces)
 
 ;; These seem to work in LaTeX mode too, so no need to distinguish?
 (defun my-tex-mode-hook ()
@@ -2195,6 +2264,7 @@ the character typed."
 ("example"     ?z "ex."   "~\\ref{%s}" t   ("Example" "Examples"))
 ("figure"      ?f "fig."  "~\\ref{%s}" t   ("Figure" "Figures"))
 ("lemma"       ?l "lem."  "~\\ref{%s}" t   ("Lemma"))
+("assumption"  ?m "ass."  "~\\ref{%s}" t   ("Assumption"))
 ("problem"     ?x "prob." "~\\ref{%s}" t   ("Problem"))
 ("proposition" ?p "prop." "~\\ref{%s}" t   ("Proposition"))
 (nil           ?s "sec."  "~\\ref{%s}" nil nil )
@@ -2318,7 +2388,7 @@ the character typed."
 ; http://danzorx.tumblr.com/post/11976550618/easypg-for-emacs-on-os-x-or-sometimes-emacs-doesnt
 (add-to-list 'exec-path "/usr/local/bin")
 ;; Next line needed because not all env variables inherited by Emacs shell.
-(setenv "BIBINPUTS" "/Users/nick/texmf/bibtex/bib")
+(setenv "BIBINPUTS" "/Users/nick/texmf/bibtex/bib;.")
 ))
 
 ;;------------------------------------------------------------
@@ -2476,11 +2546,11 @@ return `nil'."
 [DEFAULT-PACKAGES]
 [PACKAGES]
 [EXTRA]"
-("\\section{%s}" . "\\section{%s}")
-("\\subsection{%s}" . "\\subsection{%s}")
-("\\subsubsection{%s}" . "\\subsubsection{%s}")
-("\\paragraph{%s}" . "\\paragraph{%s}")
-("\\subparagraph{%s}" . "\\subparagraph{%s}")))
+("\\section{%s}" . "\\section*{%s}")
+("\\subsection{%s}" . "\\subsection*{%s}")
+("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+("\\paragraph{%s}" . "\\paragraph*{%s}")
+("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
 ;; This turns off default packages, one of which (textcomp) messes up
 ;; bullets in itemize.  May only need this when using Lucida.
@@ -2491,11 +2561,11 @@ return `nil'."
 [NO-DEFAULT-PACKAGES]
 [PACKAGES]
 [EXTRA]"
-("\\section{%s}" . "\\section{%s}")
-("\\subsection{%s}" . "\\subsection{%s}")
-("\\subsubsection{%s}" . "\\subsubsection{%s}")
-("\\paragraph{%s}" . "\\paragraph{%s}")
-("\\subparagraph{%s}" . "\\subparagraph{%s}")))
+("\\section{%s}" . "\\section*{%s}")
+("\\subsection{%s}" . "\\subsection*{%s}")
+("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+("\\paragraph{%s}" . "\\paragraph*{%s}")
+("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
 ;; Next line seems needed to make org functions available outside org,
 ;; before org has been invoked (C-c d above).
@@ -2513,8 +2583,8 @@ return `nil'."
 ;; (define-key global-map "\C-cb" 'org-iswitchb)  ; ORG manual.
 (setq org-log-done t)  ;; Add time stamp when move to DONE state.
 ;; To get ido completion (http://patchwork.newartisans.com/patch/84):
-(setq org-completion-use-ido t)  ;;
-(setq org-completion-use-iswitchb nil)  ;;
+(setq org-completion-use-ido t)  
+(setq org-completion-use-iswitchb nil)  
 (setq org-return-follows-link t)
 
 (setq org-src-fontify-natively t)   ;; http://irreal.org/blog/?p=671
@@ -2536,6 +2606,7 @@ return `nil'."
 	     (local-set-key [M-S-down] 'move-line-down)
 	     (local-unset-key (kbd "M-a")) ; Prefer Ace-jump.
 	     (local-unset-key (kbd "C-c [")) ; Prefer my-cite
+	     (local-unset-key (kbd "S-<return>")) ; Prefer smart-open-line.
 ;;	     (local-unset-key (kbd "C-]")) ; Prefer nothing
 ;;             (local-set-key (kbd "<f5>") 'org-export-as-pdf)
 ;; Latter line doesn't work in ORG 8.0.
