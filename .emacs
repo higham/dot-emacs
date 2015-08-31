@@ -346,10 +346,11 @@
 (require 'parsebib)
 (require 'helm-bibtex)
 (setq helm-bibtex-bibliography '("~/texmf/bibtex/bib/la.bib"
-                                "~/texmf/bibtex/bib/misc.bib"
-                                "~/texmf/bibtex/bib/njhigham.bib"
-                                "~/texmf/bibtex/bib/njhigham_extra.bib"
-                                ))
+                                 "~/texmf/bibtex/bib"
+                                 "~/texmf/bibtex/bib/misc.bib"
+                                 "~/texmf/bibtex/bib/njhigham.bib"
+                                 "~/texmf/bibtex/bib/njhigham_extra.bib"
+                                 ))
 
 (setq helm-bibtex-library-path '("~/pdf_papers" "~/pdf_papers/higham"
                                 "~/pdf_books"))
@@ -501,10 +502,19 @@
 ;; Case changes
 (require 'toggle-case); http://www.northbound-train.com/emacs.html
 (global-set-key [f8]     'toggle-case)
-(global-set-key [C-f8]   'downcase-word)
-(global-set-key [S-f8]   'capitalize-word)
+;; (global-set-key [C-f8]   'downcase-word)
+;; (global-set-key [S-f8]   'capitalize-word)
 (global-set-key [M-f8]   'title-case-string-region-or-line)
-(global-set-key [S-M-f8] 'upcase-word)
+;; (global-set-key [S-M-f8] 'upcase-word)
+
+;; https://github.com/mrkkrp/fix-word
+;; These work backwards when point between words.
+(use-package fix-word
+  :load-path "~/dropbox/elisp/fix-word"
+  :bind (("S-M-<f8>" . fix-word-upcase)
+         ("C-<f8>"   . fix-word-downcase)
+         ("S-<f8>"   . fix-word-capitalize)
+))
 
 ;; http://ergoemacs.org/emacs/modernization_upcase-word.html
 (defun toggle-letter-case ()
@@ -838,14 +848,14 @@ narrowed."
 (global-set-key (kbd "M-b") 'ace-jump-buffer)
 (global-set-key (kbd "M-B") 'ace-jump-same-mode-buffers)
 
-;;  http://whattheemacsd.com/init.el-03.html
+;; http://whattheemacsd.com/init.el-03.html
 ;; Save point position between sessions
-
 (require 'saveplace)
-
 (if (version< emacs-version "25.0")
     (progn (setq-default save-place t))  ;; Emacs < 25.0)
-    (progn (save-place-mode t)))       ;; Emacs >= 25.0
+    (progn (save-place-mode t)))
+(setq-default save-place t)  ; Now seems needed in 25?
+ ;; Emacs >= 25.0
 (setq save-place-file "~/dropbox/.places")
 
 ;; ----------------------------------------------------------
@@ -1643,12 +1653,13 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (global-set-key [M-C-f12]    'toggle-frame-fullscreen)
 (global-set-key [S-C-f12]    'text-scale-adjust)
 
-;; Spell checking
+
+;;; * Flyspell: spell-checking.
+
 (global-set-key [f10]        'query-replace)
 ;; (global-set-key [S-f10]      'ispell-buffer)
 (global-set-key [C-f10]      'flyspell-region)  ;; Default paragraph?
 (global-set-key [C-S-f10]    'flyspell-buffer)
-(global-set-key [M-S-f10]    'flyspell-correct-word-before-point)
 (global-set-key [S-f10]      'flyspell-auto-correct-word)
 ;; There is no "previous error" command!
 (global-set-key [M-f10]      'flyspell-goto-next-error)
@@ -1678,6 +1689,52 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (add-hook 'BibTeX-mode-hook 'flyspell-mode)
 (add-hook 'Lisp-mode-hook 'flyspell-mode)
 (add-hook 'matlab-mode-hook 'flyspell-mode)
+(add-hook 'lisp-mode-hook 'flyspell-mode)
+
+;; http://pragmaticemacs.com/emacs/jump-back-to-previous-typo/
+;; Move point to previous spelling error.
+;; Based on code by hatschipuh at http://emacs.stackexchange.com/a/14912/2017
+(defun flyspell-goto-previous-error (arg)
+  "Go to arg previous spelling error."
+  (interactive "p")
+  (while (not (= 0 arg))
+    (let ((pos (point))
+          (min (point-min)))
+      (if (and (eq (current-buffer) flyspell-old-buffer-error)
+               (eq pos flyspell-old-pos-error))
+          (progn
+            (if (= flyspell-old-pos-error min)
+                ;; goto beginning of buffer
+                (progn
+                  (message "Restarting from end of buffer")
+                  (goto-char (point-max)))
+              (backward-word 1))
+            (setq pos (point))))
+      ;; seek the next error
+      (while (and (> pos min)
+                  (let ((ovs (overlays-at pos))
+                        (r '()))
+                    (while (and (not r) (consp ovs))
+                      (if (flyspell-overlay-p (car ovs))
+                          (setq r t)
+                        (setq ovs (cdr ovs))))
+                    (not r)))
+        (backward-word 1)
+        (setq pos (point)))
+      ;; save the current location for next invocation
+      (setq arg (1- arg))
+      (setq flyspell-old-pos-error pos)
+      (setq flyspell-old-buffer-error (current-buffer))
+      (goto-char pos)
+      (if (= pos min)
+          (progn
+            (message "No more miss-spelled word!")
+            (setq arg 0))
+        (forward-word)))))
+;; global-set-key [M-S-f10]    'flyspell-correct-word-before-point)
+(global-set-key [M-S-f10]    'flyspell-goto-previous-error)
+
+;;; * Other
 
 ;; Font size - no effect with fixed-sys font in Windows.
 (define-key global-map (kbd "C-M-+") 'text-scale-increase)
@@ -2064,20 +2121,20 @@ the character typed."
 (setq LaTeX-command-style '(("" "%(PDF)%(latex) -file-line-error %S%(PDFout)")))
 
 (defun my-bibtex-mode-hook ()
-(defun bibtex-flyspell-entry ()
-  "Check BibTeX entry for spelling errors."
-  (interactive)
-  (flyspell-region (save-excursion (bibtex-beginning-of-entry))
-                 (save-excursion (bibtex-end-of-entry))))
-(local-set-key [C-S-f10]    'bibtex-flyspell-entry)
-(defun bibtex-created-date ()
-  (interactive)
-  (insert (format-time-string "created = \"%Y.%m.%d\",")))
-(local-set-key (kbd "C-c d")        'bibtex-created-date)
-(defun bibtex-updated-date ()
-  (interactive)
-  (insert (format-time-string "updated = \"%Y.%m.%d\"")))
-(local-set-key (kbd "C-c u")        'bibtex-updated-date)
+   (defun bibtex-flyspell-entry ()
+     "Check BibTeX entry for spelling errors."
+     (interactive)
+     (flyspell-region (save-excursion (bibtex-beginning-of-entry))
+                    (save-excursion (bibtex-end-of-entry))))
+   (local-set-key [C-S-f10]    'bibtex-flyspell-entry)
+   (defun bibtex-created-date ()
+     (interactive)
+     (insert (format-time-string "created = \"%Y.%m.%d\",")))
+   (local-set-key (kbd "C-c d")        'bibtex-created-date)
+   (defun bibtex-updated-date ()
+     (interactive)
+     (insert (format-time-string "updated = \"%Y.%m.%d\"")))
+   (local-set-key (kbd "C-c u")        'bibtex-updated-date)
 )
 (add-hook 'bibtex-mode-hook 'my-bibtex-mode-hook)
 
