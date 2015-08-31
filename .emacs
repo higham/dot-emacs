@@ -346,7 +346,6 @@
 (require 'parsebib)
 (require 'helm-bibtex)
 (setq helm-bibtex-bibliography '("~/texmf/bibtex/bib/la.bib"
-                                 "~/texmf/bibtex/bib"
                                  "~/texmf/bibtex/bib/misc.bib"
                                  "~/texmf/bibtex/bib/njhigham.bib"
                                  "~/texmf/bibtex/bib/njhigham_extra.bib"
@@ -508,6 +507,7 @@
 ;; (global-set-key [S-M-f8] 'upcase-word)
 
 ;; https://github.com/mrkkrp/fix-word
+;; http://emacs.stackexchange.com/questions/13970/fixing-double-capitals-as-i-type/13975#13975
 ;; These work backwards when point between words.
 (use-package fix-word
   :load-path "~/dropbox/elisp/fix-word"
@@ -2149,8 +2149,7 @@ the character typed."
 (setq bibtex-autokey-name-length 2);    Max no chars to use.
 (setq bibtex-autokey-titlewords 0);     Don't use title in key.
 (setq bibtex-autokey-titlewords-stretch 0);
-(setq bibtex-text-indentation 12);      Indentation for text.
-                                 ;      Can't have no fixed indent?
+(setq bibtex-text-indentation 0) ; No indentation for content.
 
 ;; This is for inserting text of citation within a tex file.
 ;; Use in TeX mode and others (with different keys).
@@ -2169,13 +2168,25 @@ the character typed."
 ;; Customize BibTeX bibtex-clean-entry.
 ;; That command doesn't work properly on the Mac - unclear why.
 ;; E.g. https://github.com/pcdavid/config/blob/master/emacs/feature-latex.el
+;; (setq bibtex-entry-format
+;;       `(("opts-or-alts", "page-dashes", "required-fields",
+;;          "numerical-fields", "whitespace", "last-comma", "delimiter",
+;;          "unify-case", "sort-fields"
+;; )))
 (setq bibtex-entry-format
-      `(("opts-or-alts", "page-dashes", "required-fields",
-         "numerical-fields", "whitespace", "last-comma", "delimiter",
-         "unify-case","sort-fields"
-)))
+      `(page-dashes required-fields
+         numerical-fields whitespace last-comma delimiters
+         unify-case sort-fields))
+
 (setq bibtex-field-delimiters 'double-quotes)
 (setq bibtex-entry-delimiters 'braces)
+
+;; I prefer closing brace on its own line after cleaning BibTeX entry.
+(setq bibtex-clean-entry-hook 'mybibtex-clean-extra)
+(defun mybibtex-clean-extra ()
+  "Move final right brace to a line of its own."
+  (progn (bibtex-end-of-entry) (left-char) (newline-and-indent)
+         (insert "      ")))
 
 ;; These seem to work in LaTeX mode too, so no need to distinguish?
 (defun my-tex-mode-hook ()
