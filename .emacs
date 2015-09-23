@@ -1684,6 +1684,7 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (add-hook 'org-mode-hook 'flyspell-mode)
 ;; Enable for tex-mode.
 (add-hook 'latex-mode-hook 'flyspell-mode)
+(add-hook 'bibtex-mode-hook 'flyspell-mode)
 ;; Or if you use AUCTeX for latex.
 (add-hook 'LaTeX-mode-hook 'flyspell-mode)
 (add-hook 'BibTeX-mode-hook 'flyspell-mode)
@@ -2144,9 +2145,11 @@ the character typed."
 ;; bibtex-parse-buffers-stealthily errors?
 (setq bibtex-string-file-path '("~/texmf/bibtex/bib"))
 (setq bibtex-field-delimiters 'double-quotes)
-;; Can't match my key exactly - compromise on 2 chars from each name.
-(setq bibtex-autokey-names-stretch 3);  Use up to 4 names in total
-(setq bibtex-autokey-name-length 2);    Max no chars to use.
+;; Can't match my key exactly - compromise on fixed # chars from each name.
+; (setq bibtex-autokey-names-stretch 3);  Use up to 4 names in total
+; (setq bibtex-autokey-name-length 4);    Max no chars to use.
+(setq bibtex-autokey-names-stretch 0);  Use up to 4 names in total
+(setq bibtex-autokey-name-length nil);    Max no chars to use.
 (setq bibtex-autokey-titlewords 0);     Don't use title in key.
 (setq bibtex-autokey-titlewords-stretch 0);
 (setq bibtex-text-indentation 0) ; No indentation for content.
@@ -2230,7 +2233,7 @@ the character typed."
 ;; http://comments.gmane.org/gmane.emacs.auc-tex/925
 (add-hook 'LaTeX-mode-hook
 	  (lambda ()
-	    (local-set-key "\C-c\C-g"
+	    (local-set-key (kbd "C-c C-g")
                 (lambda () (interactive) (TeX-command-menu "BibTeX")))))
 
 ;; Command to run LaTeX directly and force it always to run.
@@ -2366,6 +2369,18 @@ the character typed."
       LaTeX-item-indent 0   ; default 2
 )
 
+;; Support for latexmk
+(use-package auctex-latexmk
+  :load-path "~/dropbox/elisp/auctex-latexmk"
+  :config
+     (auctex-latexmk-setup)
+     (setq auctex-latexmk-inherit-TeX-PDF-mode t)
+)
+;; (add-to-list 'load-path "~/dropbox/elisp/auctex-latexmk")
+;; (require 'auctex-latexmk)
+;; (auctex-latexmk-setup)
+;; (setq auctex-latexmk-inherit-TeX-PDF-mode t)
+
 ;; http://vince-debian.blogspot.co.uk/2007/11/reftex-and-beamer.html
 ;; http://emacsworld.blogspot.co.uk/2008/03/getting-beamer-frame-titles-into-reftex.html
 ;; Don't need the hook!  I think the (require 'reftex) above suffices.
@@ -2420,8 +2435,8 @@ the character typed."
 ;; PDF previewers.
 (if (system-is-windows)
 (progn
-;; (setq TeX-view-program-list '(("Sumatra" "\"C:/Program Files (x86)/SumatraPDF/SumatraPDF.exe\" -reuse-instance %o")))
-(setq TeX-view-program-list '(("Sumatra" "Sumatra_emacs.bat %o") ))
+(setq TeX-view-program-list '(("Sumatra" "\"C:/Program Files (x86)/SumatraPDF/SumatraPDF.exe\" -reuse-instance %o")))
+;; (setq TeX-view-program-list '(("Sumatra" "Sumatra_emacs.bat %o") ))
 (setq TeX-view-program-selection '((output-pdf "Sumatra") (output-dvi "dviout")))
 ))
 
@@ -2634,6 +2649,10 @@ return `nil'."
 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
 ("\\paragraph{%s}" . "\\paragraph*{%s}")
 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+;; https://blog.karssen.org/2013/08/22/using-bibtex-from-org-mode/
+;; Use latexmk for PDF export
+(setq org-latex-pdf-process (list "latexmk -pdf %f"))
 
 ;; Next line seems needed to make org functions available outside org,
 ;; before org has been invoked (C-c d above).
@@ -2861,6 +2880,10 @@ table, obtained by prompting the user."
   (sacha/org-copy-region-as-html
    (org-back-to-heading)
    (org-end-of-subtree)))
+
+;; For Org to convert to doc.
+;; http://blog.binchen.org/posts/how-to-take-screen-shot-for-business-people-efficiently-in-emacs.html
+(setq org-odt-preferred-output-format "doc")
 
 (load-file "~/Dropbox/.emacs-mail-setup")
 

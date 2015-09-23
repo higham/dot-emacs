@@ -3,10 +3,10 @@
 :; Necessary because of Emacs 24 bug.
 (set-default-font "Consolas-12:bold"nil)
 
-(setq TeX-shell "d:/tcmd/tcc.exe")  ;; On my desktops.
-(if (system-is-XPS)
-(setq TeX-shell "c:/tcmd/tcc.exe")
-)
+;; (setq TeX-shell "d:/tcmd/tcc.exe")  ;; On my desktops.
+;; (if (system-is-XPS)
+;; (setq TeX-shell "c:/tcmd/tcc.exe")
+;; )
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
