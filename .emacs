@@ -27,6 +27,10 @@
 
 (bind-key* "C-z" 'scroll-up-keep-cursor)
 
+(use-package seq
+  :load-path "~/dropbox/elisp/seq"
+)
+
 ;; http://endlessparentheses.com/debug-your-emacs-init-file-with-the-bug-hunter.html
 ;; M-x bug-hunter-file [gives error about auctex].
 (use-package bug-hunter
@@ -722,6 +726,17 @@ Emacs buffers are those whose name starts with *."
     ;; ("r" (lambda () (interactive) (text-scale-adjust 0)) "reset")
     ("q" nil "quit"))
 
+;; http://ericjmritz.name/2015/10/14/some-personal-hydras-for-gnu-emacs/
+(defhydra hydra-move-org (:color red :columns 3)
+  "Org movements"
+  ("n" outline-next-visible-heading "next heading")
+  ("p" outline-previous-visible-heading "prev heading")
+  ("N" org-forward-heading-same-level "next heading at same level")
+  ("P" org-backward-heading-same-level "prev heading at same level")
+  ("u" outline-up-heading "up heading")
+  ("g" org-goto "goto" :exit t))
+(global-set-key (kbd "M-<f9>") 'hydra-move-org/body)
+
 ;; -------------------------------------------------
 
 ;; http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
@@ -814,7 +829,7 @@ narrowed."
               (local-set-key (kbd "C-$") 'select-text-in-dollars))
               (local-unset-key (kbd "C-c C-d")) ; Prefer date.
 ;;              (define-key LaTeX-mode-map (kbd "<S-C-f12>") 'TeX-next-error)
-	      )  
+	      )
 ;; Not sure why this doesn't work within the add-hook.
 (eval-after-load 'latex
     '(define-key LaTeX-mode-map (kbd "<S-C-f12>") 'TeX-next-error))
@@ -881,12 +896,23 @@ narrowed."
   ; :commands wrap-region-mode
   :diminish wrap-region-mode
   :config
+  (wrap-region-add-wrappers
+   '(("*" "*" nil org-mode)
+     ("~" "~" nil org-mode)
+     ("/" "/" nil org-mode)
+     ("=" "=" "+" org-mode)
+     ("_" "_" nil org-mode)
+     ("$" "$" nil (org-mode latex-mode))
+     ("[" "]")
+     ("(" ")")
+     ("`" "'")
+    ))
     (wrap-region-global-mode t)
-    (wrap-region-add-wrapper "$" "$" nil 'latex-mode)
-    (wrap-region-add-wrapper "[" "]")
-    (wrap-region-add-wrapper "(" ")")
-    (wrap-region-add-wrapper "`" "'")
     (wrap-region-mode t)
+    ;; (wrap-region-add-wrapper "$" "$" nil 'latex-mode)
+    ;; (wrap-region-add-wrapper "[" "]")
+    ;; (wrap-region-add-wrapper "(" ")")
+    ;; (wrap-region-add-wrapper "`" "'")
 )
 
 (use-package expand-region
@@ -961,7 +987,7 @@ Works in Microsoft Windows, Mac OS X, Linux."
         (mapc (lambda (fPath) (shell-command (format "open \"%s\"" fPath)) )  myFileList) )
        ((string-equal system-type "gnu/linux")
         (mapc (lambda (fPath) (shell-command (format "xdg-open \"%s\"" fPath)) ) myFileList) ) ) ) ) )
-(global-set-key (kbd "<M-f9>") 'open-in-external-app)
+(global-set-key (kbd "<M-S-f9>") 'open-in-external-app)
 
 ;; http://whattheemacsd.com/setup-dired.el-02.html
 ;; Avoid uninteresting lines at top and bottom.
@@ -986,6 +1012,15 @@ Works in Microsoft Windows, Mac OS X, Linux."
 (require 'wgrep)
 
 ;; -----  Screen.
+
+;; Try these further [2015-11-01 Sun 21:53]:
+;; (use-package frame-fns
+;;   :load-path "~/dropbox/elisp/frame-fns.el"
+;; )
+;; (use-package frame-cmds
+;;   :load-path "~/dropbox/elisp/frame-cmds.el"
+;; )
+
 (add-to-list 'default-frame-alist '(background-color . "black"))
 (add-to-list 'default-frame-alist '(foreground-color . "white"))
 ;; Are last two lines needed - seemed to have no effect.
@@ -1651,8 +1686,9 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 
 (global-set-key [C-f12]      'list-matching-lines)
 (global-set-key [M-C-f12]    'toggle-frame-fullscreen)
-(global-set-key [S-C-f12]    'text-scale-adjust)
 
+;; Use M-f5 Hydra instead now
+;; (global-set-key [S-C-f12]    'text-scale-adjust)
 
 ;;; * Flyspell: spell-checking.
 
@@ -1679,18 +1715,23 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (eval-after-load "flyspell"
   '(define-key flyspell-mode-map (kbd "C-c $") nil)) ;; Prefer Org-mode's key.
 
-;; Enable flyspell in various modes.
+
+;; http://stackoverflow.com/questions/6860750/how-to-enable-flyspell-mode-in-emacs-for-all-files-and-all-major-modes
+;; Turn flyspell on in all modes.
 (add-hook 'text-mode-hook 'flyspell-mode)
-(add-hook 'org-mode-hook 'flyspell-mode)
-;; Enable for tex-mode.
-(add-hook 'latex-mode-hook 'flyspell-mode)
-(add-hook 'bibtex-mode-hook 'flyspell-mode)
-;; Or if you use AUCTeX for latex.
-(add-hook 'LaTeX-mode-hook 'flyspell-mode)
-(add-hook 'BibTeX-mode-hook 'flyspell-mode)
-(add-hook 'Lisp-mode-hook 'flyspell-mode)
-(add-hook 'matlab-mode-hook 'flyspell-mode)
-(add-hook 'lisp-mode-hook 'flyspell-mode)
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
+
+;; ;; Enable flyspell in various modes.
+;; BibTeX sets flyspell-mode in later hook.
+;; (add-hook 'text-mode-hook 'flyspell-mode)
+;; (add-hook 'org-mode-hook 'flyspell-mode)
+;; ;; Enable for tex-mode.
+;; (add-hook 'latex-mode-hook 'flyspell-mode)
+;; ;; Or if you use AUCTeX for latex.
+;; (add-hook 'LaTeX-mode-hook 'flyspell-mode)
+;; (add-hook 'Lisp-mode-hook 'flyspell-mode)
+;; (add-hook 'lisp-mode-hook 'flyspell-mode)
+;; (add-hook 'matlab-mode-hook 'flyspell-mode)
 
 ;; http://pragmaticemacs.com/emacs/jump-back-to-previous-typo/
 ;; Move point to previous spelling error.
@@ -2096,6 +2137,8 @@ the character typed."
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "-" nil (point-min) (point-max))
+   (replace-string "
+" "" nil (point-min) (point-max))
 ))
 
 ;; http://stackoverflow.com/questions/730751/hiding-m-in-emacs
@@ -2122,6 +2165,7 @@ the character typed."
 (setq LaTeX-command-style '(("" "%(PDF)%(latex) -file-line-error %S%(PDFout)")))
 
 (defun my-bibtex-mode-hook ()
+   (flyspell-mode)
    (defun bibtex-flyspell-entry ()
      "Check BibTeX entry for spelling errors."
      (interactive)
@@ -2369,6 +2413,19 @@ the character typed."
       LaTeX-item-indent 0   ; default 2
 )
 
+;; This causes latex-mode not to start on loading a .tex file.  Why?
+;; ;; Support for latexmk
+;; ;; https://github.com/jedrz/.emacs.d/blob/master/setup-latex-mode.el
+;; (use-package auctex-latexmk
+;;   :load-path "~/dropbox/elisp/auctex-latexmk"
+;;   :defer t
+;;   :init
+;;   (with-eval-after-load 'latex
+;;     (auctex-latexmk-setup)
+;;     (setq auctex-latexmk-inherit-TeX-PDF-mode t)
+;;     ))
+
+;; This is slow to load!
 ;; Support for latexmk
 (use-package auctex-latexmk
   :load-path "~/dropbox/elisp/auctex-latexmk"
@@ -2376,6 +2433,8 @@ the character typed."
      (auctex-latexmk-setup)
      (setq auctex-latexmk-inherit-TeX-PDF-mode t)
 )
+
+;; This loads no faster than the use-package variant above (3 secs).
 ;; (add-to-list 'load-path "~/dropbox/elisp/auctex-latexmk")
 ;; (require 'auctex-latexmk)
 ;; (auctex-latexmk-setup)
@@ -2399,7 +2458,6 @@ the character typed."
   ;; (setq reftex-section-levels
   ;;   (cons '("frametitle" . -3) reftex-section-levels))
 ;;  ))
-
 
 ;---------------------------------
 ;; Let AucTeX know about my own macros.
@@ -2670,8 +2728,8 @@ return `nil'."
 ;; (define-key global-map "\C-cb" 'org-iswitchb)  ; ORG manual.
 (setq org-log-done t)  ;; Add time stamp when move to DONE state.
 ;; To get ido completion (http://patchwork.newartisans.com/patch/84):
-(setq org-completion-use-ido t)  
-(setq org-completion-use-iswitchb nil)  
+(setq org-completion-use-ido t)
+(setq org-completion-use-iswitchb nil)
 (setq org-return-follows-link t)
 
 (setq org-src-fontify-natively t)   ;; http://irreal.org/blog/?p=671
