@@ -25,7 +25,8 @@
       (("volume" "Volume of the journal")
        ("number" "Number of the journal (only allowed if entry contains volume)")
        ("pages" "Pages in the journal")
-       ("month") ("year")
+       ("month")
+       ("year")
        ("note")))
      ("inproceedings" "Article in Conference Proceedings"
       (("author")
@@ -184,7 +185,7 @@
       (1.7000000000000002 . 3.44)))))
  '(package-selected-packages
    (quote
-    (magit helm smex color-theme chess browse-kill-ring)))
+    (helm-bibtex magit helm smex color-theme chess browse-kill-ring)))
  '(show-paren-mode t)
  '(tool-bar-mode nil)
  '(truncate-lines t)

@@ -31,6 +31,14 @@
   :load-path "~/dropbox/elisp/seq"
 )
 
+(use-package which-key
+  :load-path "~/dropbox/elisp/which-key"
+  :config
+  ;; (setq guide-key/highlight-command-regexp "rectangle")
+  (which-key-mode)
+  (which-key-setup-minibuffer)
+)
+
 ;; http://endlessparentheses.com/debug-your-emacs-init-file-with-the-bug-hunter.html
 ;; M-x bug-hunter-file [gives error about auctex].
 (use-package bug-hunter
@@ -206,7 +214,7 @@
 (use-package dash                    :load-path "~/dropbox/elisp/dash")
 (use-package s           :defer t    :load-path "~/Dropbox/elisp/s")
 
-(use-package git-timemachine :defer t :load-path  "~/Dropbox/elisp/git-timemachine")
+(use-package git-timemachine :load-path  "~/Dropbox/elisp/git-timemachine")
 
 (use-package fill-column-indicator)
 
@@ -221,6 +229,25 @@
   :bind ("S-<f4>" . copy-from-above-command)
           ;; Copy ARG characters - default to end of line.
 )
+
+;; http://endlessparentheses.com/faster-pop-to-mark-command.html
+;; When popping the mark, continue popping until the cursor
+;; actually moves
+(defadvice pop-to-mark-command (around ensure-new-position activate)
+  (let ((p (point)))
+    (dotimes (i 10)
+      (when (= p (point)) ad-do-it))))
+(setq set-mark-command-repeat-pop t)
+
+;; http://endlessparentheses.com/improving-emacs-file-name-completion.html
+;; Extension to ingore in filename completion in minibuffer.
+(mapc (lambda (x)
+        (add-to-list 'completion-ignored-extensions x))
+      '(".aux" ".blg" ".exe"
+        ".meta" ".out" ".pdf"
+        ".synctex.gz" ".tdo" ".toc"
+        "-pkg.el" "-autoloads.el"
+        "auto/"))
 
 ;; ----------------------------------
 ;; recentf
@@ -520,6 +547,10 @@
          ("S-<f8>"   . fix-word-capitalize)
 ))
 
+(use-package fireplace
+  :load-path "~/dropbox/elisp/fireplace"
+)
+
 ;; http://ergoemacs.org/emacs/modernization_upcase-word.html
 (defun toggle-letter-case ()
   "Toggle the letter case of current word or text selection.
@@ -738,53 +769,45 @@ Emacs buffers are those whose name starts with *."
 (global-set-key (kbd "M-<f9>") 'hydra-move-org/body)
 
 ;; -------------------------------------------------
-
+;; --------------------------------------------------------
 ;; http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
-;; https://github.com/mwfogleman/config/blob/master/home/.emacs.d/michael.org
-(defun narrow-or-widen-dwim (p)
-  "If the buffer is narrowed, it widens. Otherwise, it narrows
-intelligently.  Intelligently means: region, org-src-block,
-org-subtree, or defun, whichever applies first.  Narrowing to
-org-src-block actually calls `org-edit-src-code'.
+;; http://irreal.org/blog/?p=4771
 
-With prefix P, don't widen, just narrow even if buffer is already
-narrowed."
+(defun narrow-or-widen-dwim (p)
+  "Widen if buffer is narrowed, narrow-dwim otherwise.
+Dwim means: region, org-src-block, org-subtree, or defun,
+whichever applies first. Narrowing to org-src-block actually
+calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer is
+already narrowed."
   (interactive "P")
   (declare (interactive-only))
   (cond ((and (buffer-narrowed-p) (not p)) (widen))
-        ((and (boundp 'org-src-mode) org-src-mode (not p))
-         (org-edit-src-exit))
         ((region-active-p)
          (narrow-to-region (region-beginning) (region-end)))
         ((derived-mode-p 'org-mode)
+         ;; `org-edit-src-code' is not a real narrowing
+         ;; command. Remove this first conditional if you
+         ;; don't want it.
          (cond ((ignore-errors (org-edit-src-code))
                 (delete-other-windows))
-               ((org-at-block-p)
-                (org-narrow-to-block))
+               ((ignore-errors (org-narrow-to-block) t))
                (t (org-narrow-to-subtree))))
-        ((derived-mode-p 'prog-mode) (narrow-to-defun))
-        (t (error "Please select a region to narrow to"))))
+        ((derived-mode-p 'latex-mode)
+         (LaTeX-narrow-to-environment))
+        (t (narrow-to-defun))))
 
-; (define-key endless/toggle-map "n" 'narrow-or-widen-dwim)
+;; Next line gives an error for me.
+;; (define-key endless/toggle-map "n" #'narrow-or-widen-dwim)
 
-;; ;; http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
-;; (defun narrow-or-widen-dwim (p)
-;;   "If the buffer is narrowed, it widens. Otherwise, it narrows intelligently.
-;; Intelligently means: region, subtree, or defun, whichever applies
-;; first.
-
-;; With prefix P, don't widen, just narrow even if buffer is already
-;; narrowed."
-;;   (interactive "P")
-;;   (declare (interactive-only))
-;;   (cond ((and (buffer-narrowed-p) (not p)) (widen))
-;;         ((region-active-p)
-;;          (narrow-to-region (region-beginning) (region-end)))
-;;         ((derived-mode-p 'org-mode) (org-narrow-to-subtree))
-;;         (t (narrow-to-defun))))
-
-;; (define-key endless/toggle-map "n" 'narrow-or-widen-dwim)
-;; ---------------------------------------------------------
+;; This line actually replaces Emacs' entire narrowing
+;; keymap, that's how much I like this command. Only copy it
+;; if that's what you want.
+(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+(add-hook 'LaTeX-mode-hook
+          (lambda () (define-key LaTeX-mode-map "\C-xn" nil)))
+(global-set-key [f6] 'narrow-or-widen-dwim)
 
 ;;----------------------------------------------
 ;; From Emacs Starter Kit. See
@@ -920,7 +943,8 @@ narrowed."
 ;  :commands wrap-region-mode
   :bind (("C-@"  . er/expand-region)
          ("C-~" .  er/contract-region))
-  :config
+  :init
+  ;; Trying :init because with :config this is done after LaTeX mode loaded.
   (defun er/add-latex-mode-expansions ()
   (make-variable-buffer-local 'er/try-expand-list)
   (setq er/try-expand-list (append
@@ -1208,7 +1232,6 @@ This is useful when followed by an immediate kill."
 
 (define-key isearch-mode-map [(control return)] 'isearch-exit-other-end)
 
-
 ;; http://irreal.org/blog/?p=2731,
 ;; http://demonastery.org/2013/04/emacs-narrow-to-region-indirect/
 (defun narrow-to-region-indirect-buffer (start end)
@@ -1222,7 +1245,7 @@ This is useful when followed by an immediate kill."
     (narrow-to-region start end)
     (deactivate-mark)
     (goto-char (point-min))))
-(define-key global-map (kbd "C-x n b") 'narrow-to-region-indirect-buffer)
+;; (define-key global-map (kbd "C-x n b") 'narrow-to-region-indirect-buffer)
 
 (defun prelude-google ()
   "Googles a region, if any, or prompts for a Google search string."
@@ -1278,7 +1301,7 @@ nil
      (setq cursor-type nil)
      (text-scale-increase 8))
 
-(global-set-key (kbd "<S-f6>") 'repeat-complex-command)
+(global-set-key (kbd "<C-S-f6>") 'repeat-complex-command)
 
 (require 'bubble-buffer)
 (global-set-key [f9] 'bubble-buffer-next)
@@ -1554,7 +1577,7 @@ See also: 'copy-to-register-1', 'insert-register'."
   (interactive)
   (insert-register ?1))
 
-(global-set-key [f6]         'copy-to-register-1)   ; A la TSEPro.
+(global-set-key [S-f6]       'copy-to-register-1)   ; A la TSEPro.
 (global-set-key [C-f6]       'paste-from-register-1)
 
 ;;----------------------------------------------------
@@ -2063,6 +2086,7 @@ the character typed."
 ;;   (jump-to-register :magit-fullscreen))
 ;; (define-key magit-status-mode-map (kbd "q") 'magit-quit-session)
 ; -----------------------------------------------------------------------
+
 
 ;; --------------------------------------------------------
 ;; MATLAB mode (http://www.emacswiki.org/emacs/MatlabMode)
