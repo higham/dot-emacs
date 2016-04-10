@@ -3,12 +3,16 @@
 ;;; * Initialization
 (setq inhibit-splash-screen t)       ; Don't want splash screen.
 (setq inhibit-startup-message t)     ; Don't want any startup message.
-(scroll-bar-mode -1)                 ; Turn off scrollbars.
-(tool-bar-mode -1)                   ; Turn off toolbars.
+(scroll-bar-mode 0 )                 ; Turn off scrollbars.
+(tool-bar-mode 0)                    ; Turn off toolbars.
 (fringe-mode 0)                      ; Turn off left and right fringe cols.
 (size-indication-mode)               ; Show file size in status line.
 (put 'dired-find-alternate-file 'disabled nil)
 (mouse-avoidance-mode 'exile)        ; Move mouse pointer out of way of cursor.
+
+;; No menus, but can turn back on with keypress.
+(menu-bar-mode 0)
+(global-set-key (kbd "<C-M-f2>") 'menu-bar-mode)
 
 (setq confirm-nonexistent-file-or-buffer nil)
 (fset 'yes-or-no-p 'y-or-n-p)        ; Change yes/no questions to y/n type.
@@ -19,17 +23,22 @@
 
 ;; Recommended way to load use-package.
 (add-to-list 'load-path "~/Dropbox/elisp/use-package-master")
-; (eval-when-compile (require 'use-package))
-(require 'use-package)
+(eval-when-compile (require 'use-package))
+;; (require 'use-package)
 (require 'diminish)
 (require 'bind-key)
 (setq use-package-verbose t)
 
 (bind-key* "C-z" 'scroll-up-keep-cursor)
 
-(use-package seq
-  :load-path "~/dropbox/elisp/seq"
+(if (version< emacs-version "25.0")
+     ;; Now included in Emacs 25.
+      (use-package seq
+        :load-path "~/dropbox/elisp/old/seq"
+      )
 )
+
+(require 'seq)
 
 (use-package which-key
   :load-path "~/dropbox/elisp/which-key"
@@ -155,6 +164,26 @@
 (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
 ; ----------------------------------------------------------
 
+;----------------------------------------------------------------------
+(use-package anzu
+  :load-path "~/Dropbox/elisp/anzu"
+  :config
+  (global-anzu-mode 1)
+  (set-face-attribute 'anzu-mode-line nil
+                      :foreground "yellow" :weight 'bold)
+  (custom-set-variables
+   '(anzu-mode-lighter "")
+   '(anzu-deactivate-region t)
+   '(anzu-search-threshold 1000)
+   '(anzu-replace-threshold 50)
+   '(anzu-replace-to-string-separator " => "))
+  (define-key isearch-mode-map [remap isearch-query-replace]  #'anzu-isearch-query-replace)
+  (define-key isearch-mode-map [remap isearch-query-replace-regexp] #'anzu-isearch-query-replace-regexp)
+)
+; ----------------------------------------------------------------------
+
+
+
 ;; For latest ORG mode downloaded by me.
 (add-to-list 'load-path "~/Dropbox/elisp/org/lisp")
 ;; Next line seems needed to make org functions available outside org,
@@ -205,6 +234,12 @@
   :bind ("M-SPC". shrink-whitespace)
 )
 
+(use-package aggressive-indent-mode
+  :load-path "~/dropbox/elisp/aggressive-indent-mode"
+  :config
+  (global-aggressive-indent-mode 1)
+)
+
 ;; http://pragmaticemacs.com/emacs/instant-scratch-buffer-for-current-mode/
 (require 'scratch)
 
@@ -240,7 +275,7 @@
 (setq set-mark-command-repeat-pop t)
 
 ;; http://endlessparentheses.com/improving-emacs-file-name-completion.html
-;; Extension to ingore in filename completion in minibuffer.
+;; Extensions to ignore in filename completion in minibuffer.
 (mapc (lambda (x)
         (add-to-list 'completion-ignored-extensions x))
       '(".aux" ".blg" ".exe"
@@ -384,6 +419,7 @@
 
 (setq helm-bibtex-library-path '("~/pdf_papers" "~/pdf_papers/higham"
                                 "~/pdf_books"))
+(setq helm-bibtex-pdf-symbol "#")
 
 (if (system-is-mac)
   (setq helm-bibtex-pdf-open-function 'helm-open-file-with-default-tool))
@@ -507,6 +543,17 @@
 (fset 'norm2
    (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([201326629 92 92 124 92 40 46 42 92 41 92 92 124 95 50 13 92 92 110 111 114 109 116 123 92 49 125 13 46] 0 "%d")) arg)))
 (global-set-key (kbd "C-c n") 'norm2)
+
+;; Macro to convert "From.." to "Dear..." in mail buffer.
+(fset 'my-make-dear
+   (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([C-kp-home 19 45 61 kp-home kp-down 67108896 C-kp-right C-kp-right C-kp-right 23 68 101 97 114 32 C-kp-right kp-left 44 11 return] 0 "%d")) arg)))
+ (add-hook 'mail-mode-hook
+           (lambda () (define-key mail-mode-map (kbd "<f6>") 'my-make-dear)))
+
+;; (add-hook 'mail-mode-hook
+;; 	  '(lambda()
+;;              (local-set-key (kbd "f6") 'my-make-dear)
+;; 	     ))
 
 ;; Autoindent (return acts as C-j).
 (define-key global-map (kbd "RET") 'newline-and-indent)
@@ -807,7 +854,6 @@ already narrowed."
 (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
 (add-hook 'LaTeX-mode-hook
           (lambda () (define-key LaTeX-mode-map "\C-xn" nil)))
-(global-set-key [f6] 'narrow-or-widen-dwim)
 
 ;;----------------------------------------------
 ;; From Emacs Starter Kit. See
@@ -849,13 +895,17 @@ already narrowed."
 ))
 (add-hook 'LaTeX-mode-hook
           '(lambda ()
-              (local-set-key (kbd "C-$") 'select-text-in-dollars))
-              (local-unset-key (kbd "C-c C-d")) ; Prefer date.
+              (local-set-key (kbd "C-$") 'select-text-in-dollars)
+;;              (local-unset-key (kbd "C-c C-d")) ; Prefer date.
 ;;              (define-key LaTeX-mode-map (kbd "<S-C-f12>") 'TeX-next-error)
-	      )
+	      ))
 ;; Not sure why this doesn't work within the add-hook.
 (eval-after-load 'latex
-    '(define-key LaTeX-mode-map (kbd "<S-C-f12>") 'TeX-next-error))
+;;     '(define-key LaTeX-mode-map (kbd "<S-C-f12>") 'TeX-next-error))
+   '(progn
+    (define-key LaTeX-mode-map (kbd "<S-C-f12>") 'TeX-next-error)
+    (local-unset-key "\C-c\C-d") ; Prefer date.
+    ))
 
 ;; (add-hook 'LaTeX-mode-hook
 ;; 	  '(lambda()
@@ -1222,6 +1272,7 @@ Works in Microsoft Windows, Mac OS X, Linux."
 (global-set-key (kbd "<kp-subtract>") 'isearch-repeat-backward)
 (global-set-key (kbd "<kp-add>")      'isearch-repeat-forward)
 
+;; Ctrl-return exits isearch at start of string (return: end of string).
 ;; http://www.emacswiki.org/emacs/ZapToISearch
 (defun isearch-exit-other-end (rbeg rend)
   "Exit isearch, but at the other end of the search string.
@@ -1281,10 +1332,6 @@ This is useful when followed by an immediate kill."
 (require 'xfrp_find_replace_pairs)
 (require 'xeu_elisp_util)
 
-;; No menus, but can turn back on with keypress.
-(menu-bar-mode 0)
-(global-set-key (kbd "<C-M-f2>") 'menu-bar-mode)
-
 ;; http://emacs.wordpress.com/2007/01/16/quick-and-dirty-code-folding
 (defun jao-selective-display ()
 "Activate selective display based on the column at point"
@@ -1338,6 +1385,7 @@ point reaches the beginning or end of the buffer, stop there."
 ; ------------------------------------------------
 
 ;; http://camdez.com/blog/2013/11/14/emacs-show-buffer-file-name/
+;; Shows buffer filename and copies it to kill ring.
 (defun show-buffer-file-name ()
   "Show the full path to the current file in the minibuffer."
   (interactive)
@@ -1385,6 +1433,20 @@ point reaches the beginning or end of the buffer, stop there."
           (message "Buffer '%s' successfully renamed to '%s'"
                    name (file-name-nondirectory new-name)))))))
 (global-set-key (kbd "C-x C-n") 'rename-current-buffer)
+
+;; From https://github.com/jwiegley/dot-emacs/blob/master/init.el
+(defun delete-to-end-of-buffer ()
+  (interactive)
+  (kill-region (point) (point-max)))
+
+;; http://irreal.org/blog/?p=4926
+(use-package char-menu
+  :ensure t
+  ;; bind ("H-s" . char-menu)
+  :config (setq char-menu '("—" "‘’" "“”" "…" "«»" "–"
+                            ("Typography" "•" "©" "†" "‡" "°" "·" "§" "№" "★")
+                            ("Math"       "≈" "≡" "≠" "∞" "×" "±" "∓" "÷" "√")
+                            ("Arrows"     "←" "→" "↑" "↓" "⇐" "⇒" "⇑" "⇓"))))
 
 ;; ----------------------------------
 ;; ibuffer
@@ -1641,7 +1703,7 @@ Work on whole buffer, or text selection."
 (defun backward-kill-line (arg)
   "Kill chars backward until encountering the end of a line."
   (interactive "p") (kill-line 0) )
-(global-set-key (kbd "S-C-k") 'backward-kill-line)
+(global-set-key (kbd "C-M-k") 'backward-kill-line)
 ;; Note that C-M-backspace couldn't be assigned to.
 
 ;; ------------------------------------------------------------
@@ -1659,7 +1721,7 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 )
 (global-set-key (kbd "M-k") 'my-kill-sentence)
 ;; Next function works OK as is.
-(global-set-key (kbd "C-M-k") 'backward-kill-sentence)
+(global-set-key (kbd "C-S-k") 'backward-kill-sentence)
 
 (defun my-fill-paragraph ()
   (interactive)
@@ -1738,7 +1800,6 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (eval-after-load "flyspell"
   '(define-key flyspell-mode-map (kbd "C-c $") nil)) ;; Prefer Org-mode's key.
 
-
 ;; http://stackoverflow.com/questions/6860750/how-to-enable-flyspell-mode-in-emacs-for-all-files-and-all-major-modes
 ;; Turn flyspell on in all modes.
 (add-hook 'text-mode-hook 'flyspell-mode)
@@ -1799,7 +1860,65 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 ;; global-set-key [M-S-f10]    'flyspell-correct-word-before-point)
 (global-set-key [M-S-f10]    'flyspell-goto-previous-error)
 
+;; ---------------------------------------
+;; (define-key ctl-x-map "\C-i" #'endless/ispell-word-then-abbrev)
+(global-set-key (kbd "C-:") 'endless/ispell-word-then-abbrev)
+
+;; http://endlessparentheses.com/ispell-and-abbrev-the-perfect-auto-correct.html
+(defun endless/ispell-word-then-abbrev (p)
+  "Call `ispell-word', then create an abbrev for it.
+With prefix P, create local abbrev. Otherwise it will
+be global.
+If there's nothing wrong with the word at point, keep
+looking for a typo until the beginning of buffer. You can
+skip typos you don't want to fix with `SPC', and you can
+abort completely with `C-g'."
+  (interactive "P")
+  (let (bef aft)
+    (save-excursion
+      (while (if (setq bef (thing-at-point 'word))
+                 ;; Word was corrected or used quit.
+                 (if (ispell-word nil 'quiet)
+                     nil ; End the loop.
+                   ;; Also end if we reach `bob'.
+                   (not (bobp)))
+               ;; If there's no word at point, keep looking
+               ;; until `bob'.
+               (not (bobp)))
+        (backward-word))
+      (setq aft (thing-at-point 'word)))
+    (if (and aft bef (not (equal aft bef)))
+        (let ((aft (downcase aft))
+              (bef (downcase bef)))
+          (define-abbrev
+            (if p local-abbrev-table global-abbrev-table)
+            bef aft)
+          (message "\"%s\" now expands to \"%s\" %sally"
+                   bef aft (if p "loc" "glob")))
+      (user-error "No typo at or before point"))))
+
+(setq save-abbrevs 'silently)
+(setq-default abbrev-mode t)
+;; ------------------------------------
+
 ;;; * Other
+
+;; http://pragmaticemacs.com/emacs/aligning-text/
+(defun bjm/align-whitespace (start end)
+  "Align columns by whitespace"
+  (interactive "r")
+  (align-regexp start end
+                "\\(\\s-*\\)\\s-" 1 0 t))
+
+;; Next command seems to have same effect as align-current.
+;; Useful for some other symbol?
+(defun bjm/align-& (start end)
+  "Align columns by ampersand"
+  (interactive "r")
+  (align-regexp start end
+                "\\(\\s-*\\)&" 1 1 t))
+
+;; -----------------------------------------
 
 ;; Font size - no effect with fixed-sys font in Windows.
 (define-key global-map (kbd "C-M-+") 'text-scale-increase)
@@ -2222,6 +2341,25 @@ the character typed."
 (setq bibtex-autokey-titlewords-stretch 0);
 (setq bibtex-text-indentation 0) ; No indentation for content.
 
+;; From comment at https://nickhigham.wordpress.com/2016/01/06/managing-bibtex-files-with-emacs/
+(defun bibtex-generate-autokey ()
+  (let* ((bibtex-autokey-names nil)
+  (bibtex-autokey-year-length 2)
+  (bibtex-autokey-name-separator "\0")
+  (names (split-string (bibtex-autokey-get-names) "\0"))
+  (year (bibtex-autokey-get-year))
+  (name-char (cond ((= (length names) 1) 4) ((= (length names) 2) 2) (t 1)))
+  (existing-keys (bibtex-parse-keys)) key)
+  (setq names (mapconcat (lambda (x)
+  (substring x 0 name-char))
+  names ""))
+  (setq key (format "%s%s" names year))
+  (let ((ret key))
+  (loop for c from ?a to ?z
+  while (assoc ret existing-keys)
+  do (setq ret (format "%s%c" key c)))
+  ret)))
+
 ;; This is for inserting text of citation within a tex file.
 ;; Use in TeX mode and others (with different keys).
 (defun my-cite()
@@ -2349,6 +2487,14 @@ the character typed."
    (interactive)
    (let ((fill-column (point-max)))
    (fill-region (region-beginning) (region-end) nil)))
+
+(defun fill-to-end-of-buffer ()
+"Fill to end of buffer."
+(interactive)
+(save-excursion
+(delete-trailing-whitespace)
+(fill-region (point) (point-max) nil)
+(untabify (point) (point-max))))
 
 ;; --------------------------------------------------------
 ;; AUCTeX stuff.
@@ -2553,7 +2699,8 @@ the character typed."
 ; http://danzorx.tumblr.com/post/11976550618/easypg-for-emacs-on-os-x-or-sometimes-emacs-doesnt
 (add-to-list 'exec-path "/usr/local/bin")
 ;; Next line needed because not all env variables inherited by Emacs shell.
-(setenv "BIBINPUTS" "/Users/nick/texmf/bibtex/bib;.")
+;; (setenv "BIBINPUTS" "/Users/nick/texmf/bibtex/bib;.")
+(setenv "BIBINPUTS" (concat (getenv "HOME") "/texmf/bibtex/bib:."))
 ))
 
 ;;------------------------------------------------------------
@@ -2688,6 +2835,31 @@ return `nil'."
 (setq ps-print-header nil)
 ; (setq ps-header-lines 1)
 ))
+
+;; Summing a column
+;; http://www.emacswiki.org/emacs/RectangleAdd (renamed to *sum).
+
+(defun rectangle-sum (start end)
+  "Add all the lines in the region-rectangle and put the result in the
+   kill ring."
+  (interactive "r")
+  (let ((sum 0))
+    (mapc (lambda (line)
+            (setq sum (+ sum (rectangle-sum-make-number line))))
+          (extract-rectangle start end))
+    (kill-new (number-to-string sum))
+    (message "%s" sum)))
+
+(defun rectangle-sum-make-number (n)
+  "Turn a string into a number, being tolerant of commas and even other
+   'junk'.
+When I started programming, my numeric input routines translated l
+(lowercase ell) into 'one', as many users had learnt their
+  keyboarding on manual typewriters which typically lacked
+  a separate key for the digit 1. Am I old, or what?"
+(while (string-match "[^0-9.]" n)
+  (setq n (replace-match "" nil nil n)))
+  (string-to-number n))
 
 ;;; * Org Mode
 (setq org-directory "~/Dropbox/org")

@@ -1,5 +1,8 @@
 ;; For Windows.
 
+;; Added [2016-03-30 Wed 16:06]
+(add-to-list 'exec-path "c:\\program files (x86)\\git\\bin")
+
 :; Necessary because of Emacs 24 bug.
 (set-default-font "Consolas-12:bold"nil)
 
@@ -185,7 +188,7 @@
       (1.7000000000000002 . 3.44)))))
  '(package-selected-packages
    (quote
-    (helm-bibtex magit helm smex color-theme chess browse-kill-ring)))
+    (magit char-menu helm-bibtex helm smex color-theme chess browse-kill-ring)))
  '(show-paren-mode t)
  '(tool-bar-mode nil)
  '(truncate-lines t)
