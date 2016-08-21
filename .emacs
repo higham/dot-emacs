@@ -1,4 +1,4 @@
-;; -*- coding: utf-8 orgstruct-heading-prefix-regexp: ";;; "; -*-
+; -*- coding: utf-8 orgstruct-heading-prefix-regexp: ";;; "; -*-
 
 ;;; * Initialization
 (setq inhibit-splash-screen t)       ; Don't want splash screen.
@@ -9,6 +9,7 @@
 (size-indication-mode)               ; Show file size in status line.
 (put 'dired-find-alternate-file 'disabled nil)
 (mouse-avoidance-mode 'exile)        ; Move mouse pointer out of way of cursor.
+(setq visible-bell 1)                ; Turn off sound.
 
 ;; No menus, but can turn back on with keypress.
 (menu-bar-mode 0)
@@ -158,12 +159,6 @@
 (require 'server)
 (server-start)
 
-;; Disable prompt asking you if you want to kill a
-;; buffer with a live process attached to it.
-;; http://stackoverflow.com/questions/268088/how-to-remove-the-prompt-for-killing-emacsclient-buffers
-(remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
-; ----------------------------------------------------------
-
 ;----------------------------------------------------------------------
 (use-package anzu
   :load-path "~/Dropbox/elisp/anzu"
@@ -181,9 +176,6 @@
   (define-key isearch-mode-map [remap isearch-query-replace-regexp] #'anzu-isearch-query-replace-regexp)
 )
 ; ----------------------------------------------------------------------
-
-
-
 ;; For latest ORG mode downloaded by me.
 (add-to-list 'load-path "~/Dropbox/elisp/org/lisp")
 ;; Next line seems needed to make org functions available outside org,
@@ -197,20 +189,41 @@
 
 (setq frame-title-format "%f - %p"); Titlebar contains buffer name (only).
 
+;; -----------------------------------------------------------------
+
 (add-to-list 'load-path "~/dropbox/elisp/org/contrib/lisp")
 ;; (require 'org-drill)
 
 ;;; * Package initialization
-
 (require 'package)
 (setq package-archives
-      '(("gnu" . "http://elpa.gnu.org/packages/")
-;;        ("marmalade" . "http://marmalade-repo.org/packages/")
-;;        ("Tromey" . "http://tromey.com/elpa/")
-;;        ("melpa" . "http://melpa.milkbox.net/packages/")
+      '( ;; ("gnu" . "http://elpa.gnu.org/packages/")
         ("melpa" . "http://melpa.org/packages/")
         ))
 (package-initialize)
+
+;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
+;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
+(defvar required-packages
+  '(helm helm-bibtex ivy magit smex swiper)
+  "A list of packages to ensure are installed at launch.")
+
+(defun required-packages-installed-p ()
+  (loop for p in required-packages
+        when (not (package-installed-p p)) do (return nil)
+        finally (return t)))
+
+(unless (required-packages-installed-p)
+  ;; check for new packages (package versions)
+  (message "%s" "Emacs Required is now refreshing its package database...")
+  (package-refresh-contents)
+  (message "%s" " done.")
+  ;; install the missing packages
+  (dolist (p required-packages)
+    (when (not (package-installed-p p))
+      (package-install p))))
+
+;; -----------------------------------------------------------------
 
 ;; Smooth scrolling 1 line per time (default is 5).
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
@@ -234,11 +247,11 @@
   :bind ("M-SPC". shrink-whitespace)
 )
 
-(use-package aggressive-indent-mode
-  :load-path "~/dropbox/elisp/aggressive-indent-mode"
-  :config
-  (global-aggressive-indent-mode 1)
-)
+;; (use-package aggressive-indent-mode
+;;   :load-path "~/dropbox/elisp/aggressive-indent-mode"
+;;   :config
+;;   (global-aggressive-indent-mode 1)
+;; )
 
 ;; http://pragmaticemacs.com/emacs/instant-scratch-buffer-for-current-mode/
 (require 'scratch)
@@ -393,10 +406,10 @@
 ;; (add-to-list 'load-path "~/dropbox/elisp/async")
 
 ;; (add-to-list 'load-path "~/dropbox/elisp/helm")
-(add-to-list 'load-path "~/dropbox/elisp/helm-bibtex")
-(add-to-list 'load-path "~/dropbox/elisp/f")
+;; (add-to-list 'load-path "~/dropbox/elisp/helm-bibtex")
+;; (add-to-list 'load-path "~/dropbox/elisp/f")
 ;; (add-to-list 'load-path "~/dropbox/elisp/s")
-(add-to-list 'load-path "~/dropbox/elisp/parsebib")
+;; (add-to-list 'load-path "~/dropbox/elisp/parsebib")
 
 ;; Next lime gives error on loading - why?
 ;; Works fine once loaded.
@@ -421,8 +434,14 @@
                                 "~/pdf_books"))
 (setq helm-bibtex-pdf-symbol "#")
 
+;; (if (system-is-mac)
+;;   (setq helm-bibtex-pdf-open-function
+;;   'helm-open-file-with-default-tool))
 (if (system-is-mac)
-  (setq helm-bibtex-pdf-open-function 'helm-open-file-with-default-tool))
+(setq bibtex-completion-pdf-open-function
+  (lambda (fpath)
+    (call-process "open" nil 0 nil "-a" "/Applications/Skim.app" fpath)))
+)
 ;; Got this working by trial and error, helped by
 ;; http://stackoverflow.com/questions/2284319/opening-files-with-default-windows-application-from-within-emacs
 (if (system-is-windows)
@@ -478,7 +497,21 @@
                "\\(^\\s-*(use-package +\\)\\(\\_<.+\\_>\\)" 2)))
   (add-hook 'emacs-lisp-mode-hook #'jcs-use-package))
 
-; -------------------------------------------------------------------
+;; ----------------------------------------------------
+;; Ivy and Swiper
+;; require 'ivy)
+
+(use-package swiper
+  :ensure try
+  :config
+  (progn
+    (ivy-mode 1)
+    (setq ivy-use-virtual-buffers t)
+    (global-set-key (kbd "C-S-s") 'swiper)
+    (global-set-key (kbd "C-x C-b") 'ivy-switch-buffer)
+    ))
+;; ----------------------------------------------------
+                                        ;
 ;; http://oremacs.com/2015/05/22/define-word/
 (use-package define-word
   :load-path "~/dropbox/elisp/define-word"
@@ -1091,9 +1124,9 @@ Works in Microsoft Windows, Mac OS X, Linux."
 ;; (use-package frame-fns
 ;;   :load-path "~/dropbox/elisp/frame-fns.el"
 ;; )
-;; (use-package frame-cmds
-;;   :load-path "~/dropbox/elisp/frame-cmds.el"
-;; )
+(use-package frame-cmds
+  :load-path "~/dropbox/elisp/frame-cmds.el"
+)
 
 (add-to-list 'default-frame-alist '(background-color . "black"))
 (add-to-list 'default-frame-alist '(foreground-color . "white"))
@@ -1148,7 +1181,8 @@ Works in Microsoft Windows, Mac OS X, Linux."
 ;; 24" screen for Dell.
 (if (system-is-Dell)
 (setq default-frame-alist
-      '((top . 10) (left . 1025)
+      ;; '((top . 10) (left . 1025)
+      '((top . 10) (left . 1010)
         (width . 81) (height . 48)
         )))
 
@@ -1435,7 +1469,7 @@ point reaches the beginning or end of the buffer, stop there."
 (global-set-key (kbd "C-x C-n") 'rename-current-buffer)
 
 ;; From https://github.com/jwiegley/dot-emacs/blob/master/init.el
-(defun delete-to-end-of-buffer ()
+(defun kill-to-end-of-buffer ()
   (interactive)
   (kill-region (point) (point-max)))
 
@@ -1616,6 +1650,42 @@ With argument ARG, do this that many times."
 ;;         (hippie-expand nil)
 ;;        (indent-for-tab-command)))))
 (global-set-key (kbd "TAB") 'smart-tab)
+
+
+;; ---------------------------------------------------
+;; I've added the fullscreen, which works better, but it
+;; restores window to less than full height.
+;; weather from wttr.in
+(use-package wttrin
+  :ensure t
+  :commands (wttrin)
+  :init
+  (setq wttrin-default-cities '("Manchester")))
+
+;;advise wttrin to save frame arrangement
+;;requires frame-cmds package
+(defun bjm/wttrin-save-frame ()
+  "Save frame and window configuration and then expand frame for wttrin."
+  ;;save window arrangement to a register
+  (window-configuration-to-register :pre-wttrin)
+  (delete-other-windows)
+  ;;save frame setup and resize
+  (save-frame-config)
+  (toggle-frame-fullscreen)
+  ;; (set-frame-width (selected-frame) 130)
+  ;; (set-frame-height (selected-frame) 48)
+  )
+(advice-add 'wttrin :before #'bjm/wttrin-save-frame)
+
+(defun bjm/wttrin-restore-frame ()
+  "Restore frame and window configuration saved prior to launching wttrin."
+  (interactive)
+  (jump-to-frame-config-register)
+  (jump-to-register :pre-wttrin)
+  )
+(advice-add 'wttrin-exit :after #'bjm/wttrin-restore-frame)
+;; ---------------------------------------------------
+
 
 ;; ---------------------------------------------------
 ;; http://ergoemacs.org/emacs/emacs_using_register.html
@@ -1901,6 +1971,12 @@ abort completely with `C-g'."
 (setq-default abbrev-mode t)
 ;; ------------------------------------
 
+;;  C-u 0 M-p shows a description of the change you made at each point.
+(use-package goto-chg
+  :ensure t
+  :bind (("M-," . goto-last-change)
+         ("M-." . goto-last-change-reverse)))
+
 ;;; * Other
 
 ;; http://pragmaticemacs.com/emacs/aligning-text/
@@ -1909,6 +1985,7 @@ abort completely with `C-g'."
   (interactive "r")
   (align-regexp start end
                 "\\(\\s-*\\)\\s-" 1 0 t))
+;; -----------------------------------------
 
 ;; Next command seems to have same effect as align-current.
 ;; Useful for some other symbol?
@@ -1917,8 +1994,6 @@ abort completely with `C-g'."
   (interactive "r")
   (align-regexp start end
                 "\\(\\s-*\\)&" 1 1 t))
-
-;; -----------------------------------------
 
 ;; Font size - no effect with fixed-sys font in Windows.
 (define-key global-map (kbd "C-M-+") 'text-scale-increase)
@@ -2026,8 +2101,29 @@ If region is active, apply to active region instead."
 (global-set-key [C-M-f1]
   '(lambda () (interactive) (find-file "~/Dropbox/org/org.org")))
 
+; ----------------------------------------------------------
+;; Disable prompt asking you if you want to kill a
+;; buffer with a live process attached to it.
+;; http://stackoverflow.com/questions/268088/how-to-remove-the-prompt-for-killing-emacsclient-buffers
+;; (remove-hook 'kill-buffer-query-functions
+;'server-kill-buffer-query-function)
+
 ;; For quitting file edited from server (e.g., Thunderbird).
-(global-set-key (kbd "C-x t") 'server-edit)
+;; (global-set-key (kbd "C-x t") 'server-edit)
+
+; Trying this instead, from comment at
+; https://nickhigham.wordpress.com/2015/06/18/my-dot-emacs.
+
+(defun server-edit-or-close ()
+"Saves and calls `server-edit’, if opened by server, or kills buffer."
+(interactive)
+(save-buffer)
+(if server-buffer-clients
+(server-edit)
+(kill-this-buffer)))
+(global-set-key (kbd "C-x t") 'server-edit-or-close)
+
+; ----------------------------------------------------------
 
 ;; More convenient ways to get to beginning and end of file.
 (global-set-key [\C-kp-prior]   'beginning-of-buffer)  ; numpad Pgup
@@ -2251,7 +2347,6 @@ the character typed."
   "Replace non-ASCII characters in region, or buffer if no region."
   (interactive "r")
   (save-restriction
-;    (narrow-to-region begin end)
 
     ;; Adapted from narrow-or-widen-dwim, so as to use buffer if no region.
     (cond ( (region-active-p)
@@ -2280,8 +2375,6 @@ the character typed."
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "-" nil (point-min) (point-max))
-   (replace-string "
-" "" nil (point-min) (point-max))
 ))
 
 ;; http://stackoverflow.com/questions/730751/hiding-m-in-emacs
@@ -2307,6 +2400,24 @@ the character typed."
 ;; http://tex.stackexchange.com/questions/124246/uninformative-error-message-when-using-auctex
 (setq LaTeX-command-style '(("" "%(PDF)%(latex) -file-line-error %S%(PDFout)")))
 
+;; From https://github.com/tmalsburg/helm-bibtex/issues/121#issuecomment-237981605
+(defun bibtex-completion-open-pdf-of-entry-at-point ()
+  (interactive)
+  (save-excursion
+    (bibtex-beginning-of-entry)
+    (when (looking-at bibtex-entry-maybe-empty-head)
+      (bibtex-completion-open-pdf (bibtex-key-in-head)))))
+
+;; Bib file notes: one file per entry.  
+(setq bibtex-completion-notes-path "~/texmf/bibtex/bib/notes")
+;; Trivial modification of the previous function to edit note for bib entry.
+(defun bibtex-completion-njh-edit-note ()
+  (interactive)
+  (save-excursion
+    (bibtex-beginning-of-entry)
+    (when (looking-at bibtex-entry-maybe-empty-head)
+      (bibtex-completion-edit-notes (bibtex-key-in-head)))))
+
 (defun my-bibtex-mode-hook ()
    (flyspell-mode)
    (defun bibtex-flyspell-entry ()
@@ -2318,13 +2429,31 @@ the character typed."
    (defun bibtex-created-date ()
      (interactive)
      (insert (format-time-string "created = \"%Y.%m.%d\",")))
-   (local-set-key (kbd "C-c d")        'bibtex-created-date)
+   (local-set-key (kbd "C-c d") 'bibtex-created-date)
    (defun bibtex-updated-date ()
      (interactive)
      (insert (format-time-string "updated = \"%Y.%m.%d\"")))
-   (local-set-key (kbd "C-c u")        'bibtex-updated-date)
+   (local-set-key (kbd "C-c u") 'bibtex-updated-date)
+   (local-set-key (kbd "C-c p") 'bibtex-completion-open-pdf-of-entry-at-point)
+   (local-set-key (kbd "C-c n") 'bibtex-completion-njh-edit-note)
 )
 (add-hook 'bibtex-mode-hook 'my-bibtex-mode-hook)
+
+;; My function based on the obvious commands.
+(defun njh-open-cite-pdf ()
+  (interactive)
+  (save-excursion
+  (reftex-view-crossref) (switch-window)
+   (bibtex-completion-open-pdf-of-entry-at-point)(delete-window)))
+(defun njh-open-cite-note ()
+  (interactive)
+  (save-excursion
+  (reftex-view-crossref) (switch-window)
+   (bibtex-completion-njh-edit-note) ))
+(add-hook 'LaTeX-mode-hook '(lambda ()
+          (local-set-key (kbd "C-c p") 'njh-open-cite-pdf)
+          (local-set-key (kbd "C-c n") 'njh-open-cite-note)
+          ))
 
 ;; BibTeX mode.
 (setq bibtex-string-files '("strings.bib"))
@@ -2468,6 +2597,24 @@ the character typed."
       (if (and ix (equal "LaTeX" (substring mode-name ix)))
           (LaTeX-fill-region-as-paragraph beg (point))
         (fill-region-as-paragraph beg (point))))))
+(global-set-key (kbd "<f7>") 'fill-sentence)
+
+;; From comment at https://nickhigham.wordpress.com/2016/01/06/managing-bibtex-files-with-emacs/
+(defvar bp/bibtex-fields-ignore-list
+  '("keywords" "abstract" "file" "issn" "url" "eprint" "issue_date"
+    "articleno" "numpages" "acmid"))
+(defun bp/bibtex-clean-entry-hook ()
+  (save-excursion
+  (let (bounds)
+  (when (looking-at bibtex-entry-maybe-empty-head)
+  (goto-char (match-end 0))
+  (while (setq bounds (bibtex-parse-field))
+  (goto-char (bibtex-start-of-field bounds))
+  (if (member (bibtex-name-in-field bounds)
+  bp/bibtex-fields-ignore-list)
+  (kill-region (caar bounds) (nth 3 bounds))
+  (goto-char (bibtex-end-of-field bounds))))))))
+(add-hook 'bibtex-clean-entry-hook 'bp/bibtex-clean-entry-hook)
 (global-set-key (kbd "<f7>") 'fill-sentence)
 
 ;; Single space after period denotes end of sentence.
@@ -2798,6 +2945,31 @@ return `nil'."
 ;; so try making it global.  NB: M-DEL = M-backspace.
 (global-set-key (kbd "M-DEL") 'TeX-remove-macro)
 
+;; My simplified version of TeX-home-buffer.
+;; Just go to master buffer.
+(defun TeX-master-buffer ()
+  "Go to the master TeX file."
+  (interactive)
+      (find-file (TeX-master-file TeX-default-extension))
+)
+(add-hook 'LaTeX-mode-hook '(lambda ()
+                            (local-set-key (kbd "C-c ^")
+                            'TeX-master-buffer)))
+
+;; http://mbork.pl/2016-07-04_Compiling_a_single_Beamer_frame_in_AUCTeX
+;; LaTeX current slide as _region-.tex (useful for bib Beamer files).
+;; Can add advice to avoid having to press enter on LaTeX command.
+(defun LaTeX-command-beamer-frame ()
+  "Run `TeX-command-region' on the current frame environment."
+  (interactive)
+  (save-mark-and-excursion
+    (while (not (looking-at-p "\\\\begin *{frame}"))
+      (LaTeX-find-matching-begin))
+    (forward-char)
+    (LaTeX-mark-environment)
+    (TeX-command-region)))
+
+
 ;; -------------------------------------------------
 ;; http://www.emacswiki.org/emacs/TransposeWindows
 ;; Ideally, want prefix arg to reverse order of rotation - TODO.
@@ -2838,6 +3010,7 @@ return `nil'."
 
 ;; Summing a column
 ;; http://www.emacswiki.org/emacs/RectangleAdd (renamed to *sum).
+;; Note: It seems to need a space after each number.
 
 (defun rectangle-sum (start end)
   "Add all the lines in the region-rectangle and put the result in the
@@ -2852,11 +3025,7 @@ return `nil'."
 
 (defun rectangle-sum-make-number (n)
   "Turn a string into a number, being tolerant of commas and even other
-   'junk'.
-When I started programming, my numeric input routines translated l
-(lowercase ell) into 'one', as many users had learnt their
-  keyboarding on manual typewriters which typically lacked
-  a separate key for the digit 1. Am I old, or what?"
+   'junk'."
 (while (string-match "[^0-9.]" n)
   (setq n (replace-match "" nil nil n)))
   (string-to-number n))
@@ -3139,10 +3308,21 @@ table, obtained by prompting the user."
 ;; http://blog.binchen.org/posts/how-to-take-screen-shot-for-business-people-efficiently-in-emacs.html
 (setq org-odt-preferred-output-format "doc")
 
+;; This stops hitting return after a URL opening browser.
+(setq org-return-follows-link nil)
+
 (load-file "~/Dropbox/.emacs-mail-setup")
+
+;; http://www.howardism.org/Technical/Emacs/orgmode-wordprocessor.html
+(setq org-hide-emphasis-markers t)
+(add-to-list 'org-emphasis-alist
+             '("*" (:foreground "pink")
+               ))
 
 ;;; * Local Variables
 ;; Local Variables:
 ;; eval: (orgstruct-mode 1).
 ;; orgstruct-heading-prefix-regexp: ";;; "
 ;; End:
+
+

@@ -19,6 +19,11 @@
  '(LaTeX-clean-intermediate-suffixes
    (quote
     ("\\.blg" "\\.brf" "\\.fot" "\\.glo" "\\.gls" "\\.ilg" "\\.lof" "\\.log" "\\.lot" "\\.nav" "\\.out" "\\.snm" "\\.toc" "\\.url" "\\.synctex\\.gz")))
+ '(anzu-deactivate-region t)
+ '(anzu-mode-lighter "")
+ '(anzu-replace-threshold 50)
+ '(anzu-replace-to-string-separator " => ")
+ '(anzu-search-threshold 1000)
  '(bibtex-BibTeX-entry-alist
    (quote
     (("article" "Article in Journal"
@@ -188,7 +193,7 @@
       (1.7000000000000002 . 3.44)))))
  '(package-selected-packages
    (quote
-    (magit char-menu helm-bibtex helm smex color-theme chess browse-kill-ring)))
+    (gnupg try swiper ivy wttrin goto-chg magit char-menu helm-bibtex helm smex color-theme chess browse-kill-ring)))
  '(show-paren-mode t)
  '(tool-bar-mode nil)
  '(truncate-lines t)
