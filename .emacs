@@ -32,12 +32,12 @@
 
 (bind-key* "C-z" 'scroll-up-keep-cursor)
 
-(if (version< emacs-version "25.0")
-     ;; Now included in Emacs 25.
-      (use-package seq
-        :load-path "~/dropbox/elisp/old/seq"
-      )
-)
+;; (if (version< emacs-version "25.0")
+;;      ;; Now included in Emacs 25.
+;;       (use-package seq
+;;         :load-path "~/dropbox/elisp/old/seq"
+;;       )
+;; )
 
 (require 'seq)
 
@@ -205,7 +205,7 @@
 ;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
 ;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
 (defvar required-packages
-  '(helm helm-bibtex ivy magit smex swiper)
+  '(ace-link helm helm-bibtex ivy magit smex swiper)
   "A list of packages to ensure are installed at launch.")
 
 (defun required-packages-installed-p ()
@@ -372,6 +372,8 @@
 ; (require 'undo-tree)
 ; (global-undo-tree-mode)
 ; ------------------------------------------------------------
+;; http://pragmaticemacs.com/emacs/dont-kill-buffer-kill-this-buffer-instead/
+(global-set-key (kbd "C-x k") 'kill-this-buffer)
 
 (add-to-list 'load-path "~/dropbox/elisp/browse-kill-ring")
 (require 'browse-kill-ring)
@@ -946,6 +948,13 @@ already narrowed."
 ;; 	     ))
 
 ;; ----------------------------------------------------------
+;; http://irreal.org/blog/?p=5591
+(use-package ace-link
+  :init (ace-link-setup-default)
+;;  :config (define-key org-mode-map (kbd "M-o") 'ace-link-org)
+;; Why does the define-key line fail on loading?
+)
+
 (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-mode-master")
 (require 'ace-jump-mode)
 (define-key global-map (kbd "C-x SPC") 'ace-jump-mode)
@@ -971,12 +980,13 @@ already narrowed."
 
 ;; http://whattheemacsd.com/init.el-03.html
 ;; Save point position between sessions
-(require 'saveplace)
-(if (version< emacs-version "25.0")
-    (progn (setq-default save-place t))  ;; Emacs < 25.0)
-    (progn (save-place-mode t)))
-(setq-default save-place t)  ; Now seems needed in 25?
- ;; Emacs >= 25.0
+;; (require 'saveplace)
+;; (if (version< emacs-version "25.0")
+;;     (progn (setq-default save-place t))  ;; Emacs < 25.0)
+;;     (progn (save-place-mode t)))
+;; (setq-default save-place t)  ; Now seems needed in 25?
+;; Emacs >= 25.0
+(save-place-mode 1)
 (setq save-place-file "~/dropbox/.places")
 
 ;; ----------------------------------------------------------
@@ -2375,6 +2385,7 @@ the character typed."
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "-" nil (point-min) (point-max))
+   (replace-string "" "" nil (point-min) (point-max))
 ))
 
 ;; http://stackoverflow.com/questions/730751/hiding-m-in-emacs
@@ -2408,7 +2419,7 @@ the character typed."
     (when (looking-at bibtex-entry-maybe-empty-head)
       (bibtex-completion-open-pdf (bibtex-key-in-head)))))
 
-;; Bib file notes: one file per entry.  
+;; Bib file notes: one file per entry.
 (setq bibtex-completion-notes-path "~/texmf/bibtex/bib/notes")
 ;; Trivial modification of the previous function to edit note for bib entry.
 (defun bibtex-completion-njh-edit-note ()

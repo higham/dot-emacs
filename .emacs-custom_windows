@@ -193,7 +193,7 @@
       (1.7000000000000002 . 3.44)))))
  '(package-selected-packages
    (quote
-    (gnupg try swiper ivy wttrin goto-chg magit char-menu helm-bibtex helm smex color-theme chess browse-kill-ring)))
+    (ace-link magit counsel gnupg try swiper ivy wttrin goto-chg char-menu helm-bibtex helm smex color-theme chess browse-kill-ring)))
  '(show-paren-mode t)
  '(tool-bar-mode nil)
  '(truncate-lines t)

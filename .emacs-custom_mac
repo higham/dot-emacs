@@ -176,6 +176,9 @@
  '(curchg-overwrite/read-only-cursor-type (quote bar))
  '(gud-gdb-command-name "gdb --annotate=1")
  '(large-file-warning-threshold nil)
+ '(package-selected-packages
+   (quote
+    (wttrin try swiper smex magit loccur helm-bibtex goto-chg char-menu cdlatex browse-kill-ring)))
  '(truncate-lines t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
