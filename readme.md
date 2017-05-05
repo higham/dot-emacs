@@ -8,8 +8,8 @@ It builds on the work of many others, including
 [John Wiegley](https://github.com/jwiegley).
 
 I run Emacs on both Windows and Mac machines.  On Windows, my ~/.emacs file
-(called .emacs_windows in this repository) loads .~/dropbox/.emacs and
-then ./dropbox/.emacs_custom-windows.
+(called .emacs_windows in this repository) loads ~/dropbox/.emacs and
+then ~/dropbox/.emacs_custom-windows.
 The setup for the Mac is analogous.
 
 * Some of the .emacs code uses conditional tests to see whether it is
