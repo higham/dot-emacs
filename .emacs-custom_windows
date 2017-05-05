@@ -1,7 +1,10 @@
 ;; For Windows.
 
+(setq elfeed-curl-program-name "e:\\cygwin\\bin\\curl.exe")
+
 ;; Added [2016-03-30 Wed 16:06]
-(add-to-list 'exec-path "c:\\program files (x86)\\git\\bin")
+(add-to-list 'exec-path "c:\\program files\\git\\bin")
+(add-to-list 'exec-path "C:\\Program Files (x86)\\Pandoc")
 
 :; Necessary because of Emacs 24 bug.
 (set-default-font "Consolas-12:bold"nil)
@@ -183,7 +186,7 @@
    (quote
     ("5c0bd4603cd0debcf77663cc58c5799264986bfe72365ccd764684ddd72fe327" "3a0248176bf115cd53e0f15e30bb338b55e2a09f1f9508794fcd3c623725c8bd" "bbf167fe047cd96e9df341d056a7d09e5e719a523d02d32b6eb5fa4909a4552d" "de69753c26f925ea5128458f7332749159ae5742cc042520c5faa63b5048d67d" "c58fed6b9f59b9f34090ec243811d19d421793ee5ce3e9a54faf2a03b270c2dd" "7adc287f3aa1754cb83777bc0a87f5e24a56db5786cd911110cfb77dd4ac0c9e" "00eb979b54538aa5be4bedf0df4ecd79bfb0163d7c479b721b297162a411aca3" "fc89666d6de5e1d75e6fe4210bd20be560a68982da7f352bd19c1033fb7583ba" "0a47a318b366c8d5bf2a4738ff4cea9988c60f4b3b7f7a31cff565a7889406a5" default)))
  '(epg-gpg-program "c:/program files (x86)/gnu/gnupg/gpg2.exe")
- '(magit-git-executable "c:\\program files (x86)\\git\\bin\\git.exe")
+ '(magit-git-executable "c:\\program files\\git\\bin\\git.exe")
  '(org-drill-optimal-factor-matrix
    (quote
     ((1
@@ -193,12 +196,13 @@
       (1.7000000000000002 . 3.44)))))
  '(package-selected-packages
    (quote
-    (ace-link magit counsel gnupg try swiper ivy wttrin goto-chg char-menu helm-bibtex helm smex color-theme chess browse-kill-ring)))
+    (ox-pandoc auctex-latexmk auctex ripgrep wc-mode dired-quick-sort ht ace-link magit counsel gnupg try swiper ivy wttrin goto-chg char-menu helm-bibtex helm smex color-theme chess browse-kill-ring)))
  '(show-paren-mode t)
  '(tool-bar-mode nil)
  '(truncate-lines t)
  '(vc-git-program "c:\\program files (x86)\\git\\bin\\git.exe")
- '(vc-handled-backends (quote (Git))))
+ '(vc-handled-backends (quote (Git)))
+ '(wc-modeline-format "WC[%tw/%tl/%tc]"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -206,7 +210,10 @@
  ;; If there is more than one, they won't work right.
  '(flyspell-duplicate ((t (:foreground "green" :underline "DarkOrange"))))
  '(flyspell-incorrect ((t (:background "black" :foreground "yellow" :underline "red"))))
+ '(font-latex-script-char-face ((t (:foreground "yellow"))))
  '(font-latex-slide-title-face ((((class color) (background dark)) (:inherit nil :foreground "yellow"))))
+ '(font-latex-subscript-face ((t nil)))
+ '(font-latex-superscript-face ((t nil)))
  '(font-latex-verbatim-face ((((class color) (background dark)) (:inherit nil :foreground "burlywood"))))
  '(hydra-face-amaranth ((t (:foreground "dark salmon" :weight bold))))
  '(hydra-face-blue ((t (:foreground "#00FFFF" :weight bold))))

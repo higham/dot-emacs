@@ -22,16 +22,6 @@
 ;; For packages I've downloaded.
 (add-to-list 'load-path "~/Dropbox/elisp")
 
-;; Recommended way to load use-package.
-(add-to-list 'load-path "~/Dropbox/elisp/use-package-master")
-(eval-when-compile (require 'use-package))
-;; (require 'use-package)
-(require 'diminish)
-(require 'bind-key)
-(setq use-package-verbose t)
-
-(bind-key* "C-z" 'scroll-up-keep-cursor)
-
 ;; (if (version< emacs-version "25.0")
 ;;      ;; Now included in Emacs 25.
 ;;       (use-package seq
@@ -40,6 +30,50 @@
 ;; )
 
 (require 'seq)
+(require 'cl)  ;; Temporary: to get loop macro, needed just below.
+               ;;  I think cl is automaticaly loaded by something else.
+
+;;; * Package initialization
+(require 'package)
+(setq package-archives
+      '(("melpa" . "http://melpa.org/packages/")
+        ("gnu" . "http://elpa.gnu.org/packages/");  Only for AucTeX.
+        ))
+(package-initialize)
+
+;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
+;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
+(defvar required-packages
+  '(ace-link auctex auctex-latexmk dired-quick-sort expand-region
+    helm helm-bibtex ivy magit ox-pandoc ripgrep smex swiper
+    use-package wc-mode wrap-region elfeed elfeed-goodies)
+  "A list of packages to ensure are installed at launch.")
+
+(defun required-packages-installed-p ()
+  (loop for p in required-packages
+        when (not (package-installed-p p)) do (return nil)
+        finally (return t)))
+
+(unless (required-packages-installed-p)
+  ;; check for new packages (package versions)
+  (message "%s" "Emacs Required is now refreshing its package database...")
+  (package-refresh-contents)
+  (message "%s" " done.")
+  ;; install the missing packages
+  (dolist (p required-packages)
+    (when (not (package-installed-p p))
+      (package-install p))))
+
+;; Recommended way to load use-package.
+; (add-to-list 'load-path "~/Dropbox/elisp/use-package-master")
+(eval-when-compile
+  (setq use-package-enable-imenu-support t)
+  (require 'use-package))
+(require 'diminish)
+(require 'bind-key)
+(setq use-package-verbose t)
+;; -----------------------------------------------------------------
+(bind-key* "C-z" 'scroll-up-keep-cursor)
 
 (use-package which-key
   :load-path "~/dropbox/elisp/which-key"
@@ -97,7 +131,8 @@
 (defun system-is-Chill ()
 (interactive)
 "Return true if the system we are running on Chillblast"
-(string-equal system-name "Nick-Chill"))
+(string-equal system-name "DESKTOP-II9K04F")) ; OC VII.
+;; (string-equal system-name "Nick-Chill")) ; Fusion tranquility.
 
 (defun system-is-iMac ()
 (interactive)
@@ -125,15 +160,16 @@
 ;; Can simplify next block by setting and using one backup dir variable - TODO!
 (if (system-is-windows)
 (progn
-;; Gone over to c: instead of e: because Dell XPS only has C:.
-;; Next line to create dir needed for Mac but possibly not for Windows.
-(if (not (file-exists-p "c:/emacs_backups/"))
-        (make-directory "c:/emacs_backups/" t))
-;; (make-directory "c:/emacs_backups/" t)
+(setq my-backup-dest "c:/emacs_backups/")
+; "ACL errors" on writing to C: in Windows 10, hence:
+(if (system-is-Chill) (setq my-backup-dest "r:/emacs_backups/") )
+(if (not (file-exists-p my-backup-dest))
+        (make-directory my-backup-dest t))
+;; (make-directory my-backup-dest t)
 (setq backup-directory-alist
-          `((".*" . , "c:/emacs_backups/")))
+          `((".*" . , my-backup-dest)))
 (setq auto-save-file-name-transforms   ;; Needed, else goes in curr dir!
-          `((".*" , "c:/emacs_backups/" t)))
+          `((".*" , my-backup-dest t)))
 ))
 (if (system-is-mac)
 (progn
@@ -158,6 +194,13 @@
 ;; Force calls to use previous instance of Emacs.
 (require 'server)
 (server-start)
+;; (unless (server-running-p)
+;;   (server-start)) 
+
+;; http://www.jmdeldin.com/posts/2016/sunrise-and-sunsets-in-emacs.html
+(setq calendar-latitude 53.482449)
+(setq calendar-longitude -2.340598)
+(setq calendar-location-name "Eccles, UK")
 
 ;----------------------------------------------------------------------
 (use-package anzu
@@ -193,37 +236,6 @@
 
 (add-to-list 'load-path "~/dropbox/elisp/org/contrib/lisp")
 ;; (require 'org-drill)
-
-;;; * Package initialization
-(require 'package)
-(setq package-archives
-      '( ;; ("gnu" . "http://elpa.gnu.org/packages/")
-        ("melpa" . "http://melpa.org/packages/")
-        ))
-(package-initialize)
-
-;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
-;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
-(defvar required-packages
-  '(ace-link helm helm-bibtex ivy magit smex swiper)
-  "A list of packages to ensure are installed at launch.")
-
-(defun required-packages-installed-p ()
-  (loop for p in required-packages
-        when (not (package-installed-p p)) do (return nil)
-        finally (return t)))
-
-(unless (required-packages-installed-p)
-  ;; check for new packages (package versions)
-  (message "%s" "Emacs Required is now refreshing its package database...")
-  (package-refresh-contents)
-  (message "%s" " done.")
-  ;; install the missing packages
-  (dolist (p required-packages)
-    (when (not (package-installed-p p))
-      (package-install p))))
-
-;; -----------------------------------------------------------------
 
 ;; Smooth scrolling 1 line per time (default is 5).
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
@@ -421,38 +433,80 @@
 ;; Consider redefining Smex keys.
 (global-set-key (kbd "M-x") 'helm-M-x)
 
+;; -----------------------------------------------------------------
 ;; helm-bibtex
+;;  The requires are not needed now I'm installing helm-bibtex from Melpa.
 ;; Next two are required in helm-bibtex.
-(require 'f)
-(require 'parsebib)
-(require 'helm-bibtex)
-(setq helm-bibtex-bibliography '("~/texmf/bibtex/bib/la.bib"
-                                 "~/texmf/bibtex/bib/misc.bib"
-                                 "~/texmf/bibtex/bib/njhigham.bib"
-                                 "~/texmf/bibtex/bib/njhigham_extra.bib"
-                                 ))
+;; (require 'f)
+;; (require 'parsebib)
+;; (require 'helm-bibtex)
+;; (setq helm-bibtex-bibliography
+(setq bibtex-completion-bibliography
+      '("~/texmf/bibtex/bib/la.bib"
+        "~/texmf/bibtex/bib/misc.bib"
+        "~/texmf/bibtex/bib/njhigham.bib"
+        "~/texmf/bibtex/bib/njhigham_extra.bib"
+        ))
 
-(setq helm-bibtex-library-path '("~/pdf_papers" "~/pdf_papers/higham"
-                                "~/pdf_books"))
+(setq bibtex-completion-library-path '("~/pdf_papers/" "~/pdf_papers/higham/"
+                                       "~/pdf_books/"))
+;; ;; This obsolete, but try anyway.
+;; (setq helm-bibtex-library-path '("~/pdf_papers" "~/pdf_papers/higham"
+;;                                 "~/pdf_books"))
+
+;; Shouldn't be necessary, but PDF files not being found on Windows.
+;; (setq helm-bibtex-library-path nil)
+;; (setq helm-bibtex-pdf-field nil)
+;; (setq bibtex-completion-pdf-field nil)
+
 (setq helm-bibtex-pdf-symbol "#")
 
-;; (if (system-is-mac)
-;;   (setq helm-bibtex-pdf-open-function
-;;   'helm-open-file-with-default-tool))
 (if (system-is-mac)
-(setq bibtex-completion-pdf-open-function
-  (lambda (fpath)
-    (call-process "open" nil 0 nil "-a" "/Applications/Skim.app" fpath)))
-)
+  (setq helm-bibtex-pdf-open-function
+    (lambda (fpath)
+    (call-process "open" nil 0 nil "-a" "/Applications/Skim.app" fpath))))
+;;  'helm-open-file-with-default-tool))
+
+;; Now gives "symbol's function definition is void."
+;; Commented out for now (docvew will be used?).
+;; (if (system-is-mac)
+;; ;; (setq bibtex-completion-pdf-open-function
+;; (setq bibtex-completion-open-pdf
+;;   (lambda (fpath)
+;;     (call-process "open" nil 0 nil "-a" "/Applications/Skim.app" fpath)))
+;; )
+
 ;; Got this working by trial and error, helped by
-;; http://stackoverflow.com/questions/2284319/opening-files-with-default-windows-application-from-within-emacs
+;; http#://stackoverflow.com/questions/2284319/opening-files-with-default-windows-application-from-within-emacs
+;; (if (system-is-windows)
+;;  (setq helm-bibtex-pdf-open-function    ;; Open PDF in Sumatra
+;;     (lambda (fpath) (shell-command
+;;              (concat "start /pgm SumatraPDF.exe -reuse-instance " fpath )))))
+
 (if (system-is-windows)
- (setq helm-bibtex-pdf-open-function    ;; Open PDF in Evince
+(setq bibtex-completion-pdf-open-function       ;; Open PDF in Sumatra
+;; (setq bibtex-completion-open-pdf       ;; Open PDF in Sumatra
+;;  (setq helm-bibtex-open-pdf       ;; Open PDF in Sumatra
     (lambda (fpath) (shell-command
              (concat "start /pgm SumatraPDF.exe -reuse-instance " fpath )))))
+;; -----------------------------------------------------------------
+
+;; Can't get this to work.  Nothing specfically on this found via Google.
+;; I want to use this in all modes.
+; (global-unset-key (kbd "C-c &"))
+(global-set-key (kbd "C-x &") nil) ;; Remove prefix command set by yasnippet.
+(global-set-key (kbd "C-c &") 'reftex-view-crossref)
+;; (define-key (current-global-map) "\C-c&" 'reftex-view-crossref)
+; (define-key global-map "\C-c&" nil)
 
 (use-package yasnippet
   :load-path "~/dropbox/elisp/yasnippet"
+;;  :init
+;;    (setq yas-minor-mode-map ;This MUST before (require 'yasnippet)
+;;    (let ((map (make-sparse-keymap)))
+;;      (define-key map [(tab)]     'yas-expand)
+;;      (define-key map (kbd "TAB") 'yas-expand)
+;;      ))
   :defer t
   :diminish yas-minor-mode
   :demand  ;; Found this needed for yas to be turned on when first needed.
@@ -460,13 +514,26 @@
   :config
   (setq yas-snippet-dirs '("~/dropbox/elisp/yasnippet/snippets"))
   (yas-global-mode 1)
+  ;; This works, but leaves C-c & as a prefix command, so cannot assign a
+  ;; command to it.
   (setq yas-wrap-around-region 'cua)
+  (define-key yas-minor-mode-map "\C-c&\C-s"       nil)
+  (define-key yas-minor-mode-map "\C-c&\C-n"       nil)
+  (define-key yas-minor-mode-map "\C-c&\C-v"       nil)
+  ;; http://stackoverflow.com/questions/14066526/unset-tab-binding-for-yasnippet
   ;; ;      Wiegley's key defs:
   ;; :bind (("C-c y TAB" . yas-expand)
   ;;        ("C-c y s"   . yas-insert-snippet)
   ;;        ("C-c y n"   . yas-new-snippet)
   ;;        ("C-c y v"   . yas-visit-snippet-file))
 )
+;; http://stackoverflow.com/questions/36847624/how-to-unbind-prefix-commands-in-emacs
+;; (global-set-key (kbd "C-c &") nil)
+;; (local-unset-key (kbd "C-x &-"))
+;; (add-hook 'yas-minor-mode-hook
+;; 	  '(lambda()
+;;             (define-key yas-keymap (kbd "C-x &") 'undefined)
+;; 	     ))
 
 ;; ;; yasnippet
 ;; (add-to-list 'load-path "~/dropbox/elisp/yasnippet-master")
@@ -488,16 +555,18 @@
 )
 
 ; -------------------------------------------------------------------
-;; Navigate use-package definitions in .emacs.
-;; http://irreal.org/blog/?p=3979
+;; ;; Navigate use-package definitions in .emacs.
+;; ;; http://irreal.org/blog/?p=3979
 (use-package imenu-anywhere
-  :load-path "~/dropbox/elisp/imenu-anywhere"
-  :init (global-set-key (kbd "C-c =") 'imenu-anywhere)
-  :config (defun jcs-use-package ()
-            (add-to-list 'imenu-generic-expression
-             '("Used Packages"
-               "\\(^\\s-*(use-package +\\)\\(\\_<.+\\_>\\)" 2)))
-  (add-hook 'emacs-lisp-mode-hook #'jcs-use-package))
+   :load-path "~/dropbox/elisp/imenu-anywhere"
+   :init (global-set-key (kbd "C-c =") 'imenu-anywhere)
+)
+;; No longer needed, since use-package now does this itself.
+;;   :config (defun jcs-use-package ()
+;;             (add-to-list 'imenu-generic-expression
+;;              '("Used Packages"
+;;                "\\(^\\s-*(use-package +\\)\\(\\_<.+\\_>\\)" 2)))
+;;   (add-hook 'emacs-lisp-mode-hook #'jcs-use-package))
 
 ;; ----------------------------------------------------
 ;; Ivy and Swiper
@@ -518,6 +587,7 @@
 (use-package define-word
   :load-path "~/dropbox/elisp/define-word"
   :bind (("M-g d" . define-word-at-point)
+         ("M-g M-d" . define-word-at-point)
          ("M-g D" . define-word)))
 
 ;; org2blog
@@ -582,8 +652,9 @@
 ;; Macro to convert "From.." to "Dear..." in mail buffer.
 (fset 'my-make-dear
    (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([C-kp-home 19 45 61 kp-home kp-down 67108896 C-kp-right C-kp-right C-kp-right 23 68 101 97 114 32 C-kp-right kp-left 44 11 return] 0 "%d")) arg)))
- (add-hook 'mail-mode-hook
+(add-hook 'mail-mode-hook
            (lambda () (define-key mail-mode-map (kbd "<f6>") 'my-make-dear)))
+(add-hook 'mail-mode 'flyspell-mode)
 
 ;; (add-hook 'mail-mode-hook
 ;; 	  '(lambda()
@@ -753,6 +824,70 @@ Emacs buffers are those whose name starts with *."
 (global-set-key (kbd "C-M-p") 'next-buffer-same-mode)
 
 ;; -------------------------------------------------
+;; Elfeed
+;; From http://cestlaz.github.io/posts/using-emacs-29%20elfeed/#.WLd6QxxBSRd
+(setq elfeed-db-directory "~/Dropbox/elfeeddb")
+
+(use-package elfeed
+ :ensure t
+ :bind (:map elfeed-search-mode-map
+	      ("q" . bjm/elfeed-save-db-and-bury)
+	      ("Q" . bjm/elfeed-save-db-and-bury)
+	      ("m" . elfeed-toggle-star)
+	      ("M" . elfeed-toggle-star)
+	)
+)
+
+(defun elfeed-mark-all-as-read ()
+      (interactive)
+      (mark-whole-buffer)
+      (elfeed-search-untag-all-unread))
+
+;;functions to support syncing .elfeed between machines
+;;makes sure elfeed reads index from disk before launching
+(defun bjm/elfeed-load-db-and-open ()
+  "Wrapper to load the elfeed db from disk before opening"
+  (interactive)
+  (elfeed-db-load)
+  (elfeed)
+  (elfeed-search-update--force))
+
+;;write to disk when quiting
+(defun bjm/elfeed-save-db-and-bury ()
+  "Wrapper to save the elfeed db to disk before burying buffer"
+  (interactive)
+  (elfeed-db-save)
+  (quit-window))
+
+;; [2017-03-05 Sun 14:16]
+;; Why is the next def causing error about missing elfeed-expose?
+;; It was working the other day!
+;; http://pragmaticemacs.com/category/elfeed/
+; (defalias 'elfeed-toggle-star
+;  (elfeed-expose #'elfeed-search-toggle-all 'star))
+
+(use-package elfeed-goodies
+  :ensure t
+  :config
+  (elfeed-goodies/setup))
+
+(setq elfeed-feeds
+      '(
+        ("http://xkcd.com/rss.xml" comics XKCD)
+        ("http://irreal.org/blog/?feed=rss2" blog emacs)
+        ("http://pragmaticemacs.com/feed/" blog Emacs)
+        ("https://nibandmuck.com/" Nib and Muck)
+        ("http://sachachua.com/blog/category/emacs-news/feed" blog Emacs)
+))
+
+;; Seems to need older version of Org to install!
+;; (use-package elfeed-org
+;;   :ensure t
+;;   :config
+;;   (elfeed-org)
+;;   (setq rmh-elfeed-org-files (list "~/Dropbox/org/elfeed.org")))
+
+;; -------------------------------------------------
 ;; Hydra
 
 (add-to-list 'load-path "~/dropbox/elisp/hydra")
@@ -800,14 +935,20 @@ Emacs buffers are those whose name starts with *."
     (lambda () (interactive) (find-file "~/texmf/bibtex/bib/misc.bib"))
     "misc")
   ("o"
-   (lambda () (interactive) (find-file "~/texmf/bibtex/bib/ode.bib"))
-   "ode")
+    (lambda () (interactive) (switch-to-buffer "*org*"))
+    "org*")
+
+;;   (lambda () (interactive) (find-file "~/texmf/bibtex/bib/ode.bib"))
+;;   "ode")
    ("s"
     (lambda () (interactive) (find-file "~/texmf/bibtex/bib/strings.bib"))
     "strings")
    ("x"
     (lambda () (interactive) (switch-to-buffer "*scratch*"))
     "scratch*")
+   ("t"
+    (lambda () (interactive) (switch-to-buffer "*text*"))
+    "text*")
    ("z" scratch "scratch-make")
 )
 
@@ -993,6 +1134,8 @@ already narrowed."
 ;; From http://lumiere.ens.fr/~guerry/u/emacs.el
 (add-hook 'emacs-lisp-mode-hook 'turn-on-orgstruct++)
 (add-hook 'mail-mode-hook 'turn-on-orgstruct++)
+;; http://pragmaticemacs.com/emacs/use-org-mode-tables-and-structures-in-emails-and-elsewhere/
+(add-hook 'mail-mode-hook 'turn-on-orgtbl)
 ;;----------------------------------------------
 
 (use-package multiple-cursors
@@ -1006,7 +1149,7 @@ already narrowed."
 )
 
 (use-package wrap-region
-  :load-path "~/Dropbox/elisp/wrap-region"
+;  :load-path "~/Dropbox/elisp/wrap-region"
   ; Deferred loading caused by next line stops package working
   ; until mode turned off then on again!
   ; :commands wrap-region-mode
@@ -1032,7 +1175,7 @@ already narrowed."
 )
 
 (use-package expand-region
-  :load-path "~/Dropbox/elisp/expand-region.el-master"
+;  :load-path "~/Dropbox/elisp/expand-region.el-master"
 ;  :commands wrap-region-mode
   :bind (("C-@"  . er/expand-region)
          ("C-~" .  er/contract-region))
@@ -1123,8 +1266,23 @@ Works in Microsoft Windows, Mac OS X, Linux."
 
 (define-key dired-mode-map
   (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
-;;------------------------------------------------------------
 
+;;------------------------------------------------------------
+(when (system-is-windows)
+(use-package dired-quick-sort
+  :ensure t
+  :config
+    (setq ls-lisp-use-insert-directory-program t)      ;; use external ls
+    (setq insert-directory-program "e:/cygwin/bin/ls") ;; ls program name
+  ;; (when (system-is-mac)
+  ;;   (setq ls-lisp-use-insert-directory-program t)      ;; use external ls
+  ;;   (setq insert-directory-program "ls")          ;; ls program name
+  ;; ) 
+  (dired-quick-sort-setup)
+)
+)
+
+;; -----------------------------------------
 (add-to-list 'load-path "~/Dropbox/elisp/mhayashi1120-Emacs-wgrep-f701229")
 (require 'wgrep)
 
@@ -1157,8 +1315,10 @@ Works in Microsoft Windows, Mac OS X, Linux."
 ;; Seems this must come after the above, else window is shorter!
 (if (system-is-windows)
 (setq default-frame-alist
-      '((top . 10) (left . 650)      ; pixel offsets 100 and 900.
-        (width . 80) (height . 48)   ; width and height in pixels.
+;;      '((top . 10) (left . 650)      ; pixel offsets 100 and 900.
+      '((top . 10) (left . 40)      ; For small screen.
+;;        (width . 80) (height . 48)   ; width and height in pixels.
+        (width . 80) (height . 30)   ; For small screen.
         )))
 
 (if (system-is-MBP15)
@@ -1370,6 +1530,33 @@ This is useful when followed by an immediate kill."
 
 (global-set-key (kbd "M-g M-l") 'goto-line)
 (global-set-key (kbd "M-g l")   'goto-line)
+
+;; -----------------------------------------------------------------
+(defun xah-select-text-in-quote ()
+  "Select text between the nearest left and right delimiters.
+Delimiters here includes the following chars: \"<>(){}[]“”‘’‹›«»「」『』【】〖〗《》〈〉〔〕（）
+This command does not properly deal with nested brackets.
+URL `http://ergoemacs.org/emacs/modernization_mark-word.html'
+Version 2015-05-16"
+  (interactive)
+  (let (-p1
+        -p2
+        (-skipChars "^\"<>(){}[]“”‘’‹›«»「」『』【】〖〗《》〈〉〔〕（）"))
+    (skip-chars-backward -skipChars)
+    (setq -p1 (point))
+    (skip-chars-forward -skipChars)
+    (setq -p2 (point))
+    (set-mark -p1)))
+
+(defun mydoi ()
+  "With point inside a DOI field of a bib entry goes object with that DOI."
+  (interactive)
+  (xah-select-text-in-quote)
+  (browse-url
+   (concat
+    "https://doi.org/" (buffer-substring (region-beginning) (region-end))
+  )))
+;; -----------------------------------------------------------------
 
 ;; http://xahlee.blogspot.com/2011/11/emacs-lisp-example-title-case-string.html
 ;; For title-case-string-region-or-line
@@ -1719,8 +1906,8 @@ See also: 'copy-to-register-1', 'insert-register'."
   (interactive)
   (insert-register ?1))
 
-(global-set-key [S-f6]       'copy-to-register-1)   ; A la TSEPro.
-(global-set-key [C-f6]       'paste-from-register-1)
+(global-set-key [C-f6]       'copy-to-register-1)   ; A la TSEPro.
+(global-set-key [S-f6]       'paste-from-register-1)
 
 ;;----------------------------------------------------
 ;; http://ergoemacs.org/emacs/elisp_compact_empty_lines.html
@@ -2172,7 +2359,7 @@ If region is active, apply to active region instead."
 ;; (global-set-key [\C-kp-left]  'backward-word)   ; keypad cursor key
 
 ;; -------------------------------------------------
-;; Comment ed out to see if cures yasnippet bug
+;; Commented out to see if cures yasnippet bug
 ;; Prefer not to skip over special chars:
 ;; http://stackoverflow.com/questions/3931837/modifying-emacs-forward-word-backward-ward-behavior-to-be-like-in-vi-vim
 (setq viper-mode nil)
@@ -2385,7 +2572,10 @@ the character typed."
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "-" nil (point-min) (point-max))
-   (replace-string "" "" nil (point-min) (point-max))
+;; Next line deleted as it puts everything on one line when applied to
+;; whole file!
+;;    (replace-string "
+;; " "" nil (point-min) (point-max))
 ))
 
 ;; http://stackoverflow.com/questions/730751/hiding-m-in-emacs
@@ -2400,13 +2590,6 @@ the character typed."
 
 ;;; * LaTeX
 
-;; Can't get this to work.  Nothing specfically on this found via Google.
-;; I want to use this in all modes.
-; (global-unset-key (kbd "C-c &"))
-; (local-set-key (kbd "C-c &") 'reftex-view-crossref)
-; define-key (current-global-map) "\C-c&" 'reftex-view-crossref)
-; (define-key global-map "\C-c&" nil)
-
 ;; To fix problem with parsing error messages from Emacs 24.x onwards:
 ;; http://tex.stackexchange.com/questions/124246/uninformative-error-message-when-using-auctex
 (setq LaTeX-command-style '(("" "%(PDF)%(latex) -file-line-error %S%(PDFout)")))
@@ -2417,7 +2600,9 @@ the character typed."
   (save-excursion
     (bibtex-beginning-of-entry)
     (when (looking-at bibtex-entry-maybe-empty-head)
-      (bibtex-completion-open-pdf (bibtex-key-in-head)))))
+;      (bibtex-completion-open-pdf (bibtex-key-in-head)))))
+       (bibtex-completion-open-pdf (list (bibtex-key-in-head))))))
+;; Change suggested by https://github.com/tmalsburg/helm-bibtex/issues/169#issuecomment-269950953
 
 ;; Bib file notes: one file per entry.
 (setq bibtex-completion-notes-path "~/texmf/bibtex/bib/notes")
@@ -2427,7 +2612,8 @@ the character typed."
   (save-excursion
     (bibtex-beginning-of-entry)
     (when (looking-at bibtex-entry-maybe-empty-head)
-      (bibtex-completion-edit-notes (bibtex-key-in-head)))))
+;;      (bibtex-completion-edit-notes (bibtex-key-in-head)))))
+      (bibtex-completion-edit-notes (list( bibtex-key-in-head))))))
 
 (defun my-bibtex-mode-hook ()
    (flyspell-mode)
@@ -2466,7 +2652,9 @@ the character typed."
           (local-set-key (kbd "C-c n") 'njh-open-cite-note)
           ))
 
+
 ;; BibTeX mode.
+(require 'bibtex)
 (setq bibtex-string-files '("strings.bib"))
 ;; Does removing trailing / on next line cure
 ;; bibtex-parse-buffers-stealthily errors?
@@ -2657,7 +2845,8 @@ the character typed."
 ;; --------------------------------------------------------
 ;; AUCTeX stuff.
 
-(load "auctex.el" nil t t) ;; Not clear if this is needed.
+;; Next line definitely not needed now I have auctex installed from Gnu Elpa.
+;; (load "auctex.el" nil t t) ;; Not clear if this is needed.
 
 (setq TeX-parse-self t); Enable parse on load.
 (setq TeX-PDF-mode t)
@@ -2756,7 +2945,7 @@ the character typed."
 ;; This is slow to load!
 ;; Support for latexmk
 (use-package auctex-latexmk
-  :load-path "~/dropbox/elisp/auctex-latexmk"
+;;  :load-path "~/dropbox/elisp/auctex-latexmk"
   :config
      (auctex-latexmk-setup)
      (setq auctex-latexmk-inherit-TeX-PDF-mode t)
@@ -2821,7 +3010,8 @@ the character typed."
 ;; PDF previewers.
 (if (system-is-windows)
 (progn
-(setq TeX-view-program-list '(("Sumatra" "\"C:/Program Files (x86)/SumatraPDF/SumatraPDF.exe\" -reuse-instance %o")))
+(setq TeX-view-program-list '(("Sumatra" "\"SumatraPDF.exe\" -reuse-instance %o")))
+;; (setq TeX-view-program-list '(("Sumatra" "\"C:/Program Files (x86)/SumatraPDF/SumatraPDF.exe\" -reuse-instance %o")))
 ;; (setq TeX-view-program-list '(("Sumatra" "Sumatra_emacs.bat %o") ))
 (setq TeX-view-program-selection '((output-pdf "Sumatra") (output-dvi "dviout")))
 ))
@@ -3128,6 +3318,7 @@ return `nil'."
 	     (local-unset-key (kbd "M-a")) ; Prefer Ace-jump.
 	     (local-unset-key (kbd "C-c [")) ; Prefer my-cite
 	     (local-unset-key (kbd "S-<return>")) ; Prefer smart-open-line.
+             (local-set-key (kbd "C-c &") 'reftex-view-crossref)
 ;;	     (local-unset-key (kbd "C-]")) ; Prefer nothing
 ;;             (local-set-key (kbd "<f5>") 'org-export-as-pdf)
 ;; Latter line doesn't work in ORG 8.0.
@@ -3140,7 +3331,7 @@ return `nil'."
 
 ;; Link abbrevations.
 (setq org-link-abbrev-alist
-       '(("doi" . "http://dx.doi.org/")
+       '(("doi" . "https://doi.org/")
          ("google"   . "http://www.google.com/search?q=")
         ))
 
@@ -3199,7 +3390,7 @@ return `nil'."
 (setq org-reverse-note-order t)  ;; Refile at top instead of bottom.
 
 (setq org-todo-keywords
-           '((sequence "TODO(t!)" "|" "DONE(d!)")
+           '((sequence "TODO(t!)" "WAITING(w!)" "|" "DONE(d!)")
              (sequence "CLAIMED(c!)" "ON THE WAY(o!)" "|" "RECEIVED(r!)")
              )
 )
@@ -3271,7 +3462,8 @@ table, obtained by prompting the user."
    '(lambda ()
       (delete '("\\.pdf\\'" . default) org-file-apps)
 ;;      (add-to-list 'org-file-apps '("\\.pdf\\'" . "d:\\bat\\sumatra_emacs.bat %s")))
-      (add-to-list 'org-file-apps '("\\.pdf\\'" . "\"C:/Program Files (x86)/SumatraPDF/SumatraPDF.exe\" -reuse-instance %s")))
+;;      (add-to-list 'org-file-apps '("\\.pdf\\'" . "\"C:/Program Files (x86)/SumatraPDF/SumatraPDF.exe\" -reuse-instance %s")))
+      (add-to-list 'org-file-apps '("\\.pdf\\'" . "\"C:/Program Files/SumatraPDF/SumatraPDF.exe\" -reuse-instance %s")))
 ))
 
 ;; Open PDFs in Skim instead of Acrobat.
@@ -3335,5 +3527,3 @@ table, obtained by prompting the user."
 ;; eval: (orgstruct-mode 1).
 ;; orgstruct-heading-prefix-regexp: ";;; "
 ;; End:
-
-

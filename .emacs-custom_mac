@@ -178,8 +178,9 @@
  '(large-file-warning-threshold nil)
  '(package-selected-packages
    (quote
-    (wttrin try swiper smex magit loccur helm-bibtex goto-chg char-menu cdlatex browse-kill-ring)))
+    (elfeed-org elfeed-goodies elfeed wttrin try swiper smex magit loccur helm-bibtex goto-chg char-menu cdlatex browse-kill-ring)))
  '(truncate-lines t))
+ '(wc-modeline-format "WC[%tw/%tl/%tc]")
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -188,6 +189,7 @@
  '(default ((t (:inherit nil :stipple nil :background "black" :foreground "white" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 180 :width normal :foundry "outline" :family "Monaco"))))
  '(flyspell-duplicate ((t (:foreground "green" :underline "DarkOrange"))))
  '(flyspell-incorrect ((t (:background "black" :foreground "yellow" :underline "red"))))
+ '(font-latex-script-char-face ((t (:foreground "yellow"))))
  '(font-latex-slide-title-face ((((class color) (background dark)) (:inherit nil :foreground "yellow"))))
  '(font-latex-verbatim-face ((((class color) (background dark)) (:inherit nil :foreground "burlywood"))))
  '(org-verbatim ((t (:inherit shadow :foreground "#aef"))))
