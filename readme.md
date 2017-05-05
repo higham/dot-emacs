@@ -28,4 +28,4 @@ The setup for the Mac is analogous.
   as in Org mode.
 
 Some more background information is given in the blog post
-[My Dot Emacs] (https://nickhigham.wordpress.com/2015/06/18/my-dot-emacs).
+[My Dot Emacs](https://nickhigham.wordpress.com/2015/06/18/my-dot-emacs).
