@@ -44,10 +44,13 @@
 ;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
 ;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
 (defvar required-packages
-  '(ace-link auctex auctex-latexmk dired-quick-sort expand-region
+  '(ace-link auctex auctex-latexmk bind-key diminish dired-quick-sort
+    elfeed elfeed-goodies expand-region
     helm helm-bibtex ivy magit ox-pandoc ripgrep smex swiper
-    use-package wc-mode wrap-region elfeed elfeed-goodies)
+    use-package wc-mode wrap-region)
   "A list of packages to ensure are installed at launch.")
+
+(setq use-package-verbose t)  ;; Show package load times.
 
 (defun required-packages-installed-p ()
   (loop for p in required-packages
@@ -439,7 +442,8 @@
 ;; Next two are required in helm-bibtex.
 ;; (require 'f)
 ;; (require 'parsebib)
-;; (require 'helm-bibtex)
+;; Next line needed only so 'bibtex-completion-open-pdf is known for C-c p.
+(require 'helm-bibtex)
 ;; (setq helm-bibtex-bibliography
 (setq bibtex-completion-bibliography
       '("~/texmf/bibtex/bib/la.bib"
@@ -2567,6 +2571,9 @@ the character typed."
    (goto-char (point-min))
     (while (search-forward "–" nil t) (replace-match "-" nil t))
 
+   (goto-char (point-min))
+    (while (search-forward "—" nil t) (replace-match "-" nil t))
+
    (replace-string "" "`" nil (point-min) (point-max))  ; opening single quote
    (replace-string "" "'" nil (point-min) (point-max))  ; closing single quote
    (replace-string "" "\"" nil (point-min) (point-max))
@@ -2587,6 +2594,23 @@ the character typed."
     (goto-char (point-min))
       (while (search-forward (string ?\C-m) nil t) (replace-match "")))
 
+;; For making comma-seperated list of keywords from list of words.
+(defun make-keywords (begin end)
+  "Replace non-ASCII characters in region, or buffer if no region."
+    ;; Adapted from tidy.
+  (interactive "r")
+  (save-restriction
+
+    (cond ( (region-active-p)
+            (narrow-to-region (region-beginning) (region-end)) ))
+
+    (goto-char (point-min))
+    (while (search-forward ", " nil t) (replace-match " " nil t))
+    (goto-char (point-min))
+    (while (search-forward ". " nil t) (replace-match " " nil t))
+    (goto-char (point-min))
+    (while (search-forward " " nil t) (replace-match ", " nil t))
+))
 
 ;;; * LaTeX
 
@@ -2899,7 +2923,8 @@ the character typed."
 ("assumption"  ?m "ass."  "~\\ref{%s}" t   ("Assumption"))
 ("problem"     ?x "prob." "~\\ref{%s}" t   ("Problem"))
 ("proposition" ?p "prop." "~\\ref{%s}" t   ("Proposition"))
-(nil           ?s "sec."  "~\\ref{%s}" nil nil )
+("code"        ?n "line." "~\\ref{%s}" nil nil) ;; Doesn't work!
+(nil           ?s "sec."  "~\\ref{%s}" nil nil)
 ("table"       ?t "table."  "~\\ref{%s}" t   ("Tables" "Tables"))
 ("theorem"     ?h "thm."  "~\\ref{%s}" t   ("Theorem" "Theorems"))
 	)
@@ -2975,6 +3000,21 @@ the character typed."
   ;; (setq reftex-section-levels
   ;;   (cons '("frametitle" . -3) reftex-section-levels))
 ;;  ))
+
+;; Turn off Auctex autoindent, which is annoying in version 11.90.2.
+;; http://stackoverflow.com/questions/21862391/prevent-auctex-indentation-with-fill-paragraph
+;; http://stackoverflow.com/questions/10743708/emacs-turn-off-indentation-when-doing-a-paragraph-fill-in-latex-mode
+(add-hook 'LaTeX-mode-hook
+          (lambda ()
+;;   https://www.gnu.org/software/auctex/manual/auctex/Indenting.html
+;;            (define-key latex-map (kbd "RET") 'LaTeX-newline)
+            (local-set-key (kbd "RET") 'LaTeX-newline)
+            (setq LaTeX-insert-into-comments nil) ;; Else adds unwanted "%".
+;             (kill-local-variable 'line-indent-function)
+;;            (setq LaTeX-indent-level 0)
+;;            (setq LaTeX-item-indent 0)
+;;            (setq fill-indent-according-to-mode nil))
+))
 
 ;---------------------------------
 ;; Let AucTeX know about my own macros.
