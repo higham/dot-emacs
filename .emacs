@@ -29,6 +29,10 @@
 ;;       )
 ;; )
 
+;; Next line necessary after 10-12-17 package update.  let-alist was
+;; downloaded as a dependency but seems we need to load it.
+(require 'let-alist) ;; Cures startup problem 10-12-17?
+
 (require 'seq)
 (require 'cl)  ;; Temporary: to get loop macro, needed just below.
                ;;  I think cl is automaticaly loaded by something else.
@@ -36,7 +40,9 @@
 ;;; * Package initialization
 (require 'package)
 (setq package-archives
-      '(("melpa" . "http://melpa.org/packages/")
+      '(
+        ("orgmode" . "https://orgmode.org/elpa/")
+        ("melpa" . "http://melpa.org/packages/")
         ("gnu" . "http://elpa.gnu.org/packages/");  Only for AucTeX.
         ))
 (package-initialize)
@@ -45,11 +51,12 @@
 ;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
 (defvar required-packages
   '(ace-link auctex auctex-latexmk bind-key diminish dired-quick-sort
-    elfeed elfeed-goodies expand-region
-    helm helm-bibtex ivy magit ox-pandoc ripgrep smex swiper
-    use-package wc-mode wrap-region)
+    edit-server elfeed elfeed-goodies expand-region
+    helm helm-bibtex ivy latex-extra magit ox-pandoc
+    ripgrep smex swiper use-package wc-mode wrap-region yasnippet)
   "A list of packages to ensure are installed at launch.")
 
+(setq use-package-enable-imenu-support t)
 (setq use-package-verbose t)  ;; Show package load times.
 
 (defun required-packages-installed-p ()
@@ -120,6 +127,7 @@
 "Return true if the system we are running on MacBook Pro 13 Retina"
 ; Not sure why name varies.
 (or (string-equal system-name "MacBook-13R-NJH.local")
+    (string-equal system-name "MacBook13-2013") ;; High Sierra update
     (string-equal system-name "macbook13-2013") ;; Emacs 24.5.1
     (string-equal system-name "MacBook13-2013.local")
     (string-equal system-name "Fran-MBP13.local")
@@ -134,8 +142,9 @@
 (defun system-is-Chill ()
 (interactive)
 "Return true if the system we are running on Chillblast"
-(string-equal system-name "DESKTOP-II9K04F")) ; OC VII.
+;; (string-equal system-name "DESKTOP-II9K04F")) ; OC VII.
 ;; (string-equal system-name "Nick-Chill")) ; Fusion tranquility.
+(string-equal system-name "Chillblast-Nick")) ; OC VII.
 
 (defun system-is-iMac ()
 (interactive)
@@ -198,7 +207,12 @@
 (require 'server)
 (server-start)
 ;; (unless (server-running-p)
-;;   (server-start)) 
+;;   (server-start))
+
+;; For edit-with-emacs extension.
+(when (require 'edit-server nil t)
+    (setq edit-server-new-frame nil)
+    (edit-server-start))
 
 ;; http://www.jmdeldin.com/posts/2016/sunrise-and-sunsets-in-emacs.html
 (setq calendar-latitude 53.482449)
@@ -438,7 +452,7 @@
 
 ;; -----------------------------------------------------------------
 ;; helm-bibtex
-;;  The requires are not needed now I'm installing helm-bibtex from Melpa.
+;; The requires are not needed now I'm installing helm-bibtex from Melpa.
 ;; Next two are required in helm-bibtex.
 ;; (require 'f)
 ;; (require 'parsebib)
@@ -504,16 +518,16 @@
 ; (define-key global-map "\C-c&" nil)
 
 (use-package yasnippet
-  :load-path "~/dropbox/elisp/yasnippet"
+;;  :load-path "~/dropbox/elisp/yasnippet"
 ;;  :init
 ;;    (setq yas-minor-mode-map ;This MUST before (require 'yasnippet)
 ;;    (let ((map (make-sparse-keymap)))
 ;;      (define-key map [(tab)]     'yas-expand)
 ;;      (define-key map (kbd "TAB") 'yas-expand)
 ;;      ))
-  :defer t
-  :diminish yas-minor-mode
+;;  :defer t
   :demand  ;; Found this needed for yas to be turned on when first needed.
+  :diminish yas-minor-mode
 ; :commands (yas-expand yas-minor-mode)
   :config
   (setq yas-snippet-dirs '("~/dropbox/elisp/yasnippet/snippets"))
@@ -581,7 +595,8 @@
   :config
   (progn
     (ivy-mode 1)
-    (setq ivy-use-virtual-buffers t)
+    (setq ivy-use-virtual-buffers t
+          ivy-count-format "%d/%d ")
     (global-set-key (kbd "C-S-s") 'swiper)
     (global-set-key (kbd "C-x C-b") 'ivy-switch-buffer)
     ))
@@ -599,7 +614,7 @@
 (add-to-list 'load-path "~/dropbox/elisp/org2blog")
 (add-to-list 'load-path "~/dropbox/elisp/metaweblog-master")
 (require 'org2blog-autoloads)
-; (require 'xml-rpc)
+                                       ; (require 'xml-rpc)
 ;; Load construct that has Wordpress username and password.
 (load-file "~/Dropbox/.emacs-wordpress")
 (setq org2blog/wp-show-post-in-browser 'show)
@@ -938,6 +953,9 @@ Emacs buffers are those whose name starts with *."
    ("m"
     (lambda () (interactive) (find-file "~/texmf/bibtex/bib/misc.bib"))
     "misc")
+   ("e"
+    (lambda () (interactive) (find-file "~/texmf/bibtex/bib/ode.bib"))
+    "ode")
   ("o"
     (lambda () (interactive) (switch-to-buffer "*org*"))
     "org*")
@@ -1046,7 +1064,8 @@ already narrowed."
              (current-buffer))
     (error (message "Invalid expression")
            (insert (current-kill 0)))))
-(global-set-key (kbd "C-M-e") 'eval-and-replace)
+;; (global-set-key (kbd "C-M-e") 'eval-and-replace)
+;; Clashes with latex-extra command.
 
 (defun lorem ()
   "Insert a lorem ipsum."
@@ -1086,6 +1105,13 @@ already narrowed."
     (define-key LaTeX-mode-map (kbd "<S-C-f12>") 'TeX-next-error)
     (local-unset-key "\C-c\C-d") ; Prefer date.
     ))
+
+(add-hook 'LaTeX-mode-hook #'latex-extra-mode) ; Activate latex-extra
+;; Disable C-c C-u from latex-extra (prefer LaTeX-star-environment below).
+;; Next line seemed to wipe out latex-extra and reftex key bindings:
+;; (add-hook 'LaTeX-mode-hook '(lambda () (define-key latex-extra-mode-map "" nil)))
+;; So replaced by this:
+(add-hook 'LaTeX-mode-hook '(lambda () (define-key latex-extra-mode-map (kbd "C-c C-u") nil)))
 
 ;; (add-hook 'LaTeX-mode-hook
 ;; 	  '(lambda()
@@ -1281,7 +1307,7 @@ Works in Microsoft Windows, Mac OS X, Linux."
   ;; (when (system-is-mac)
   ;;   (setq ls-lisp-use-insert-directory-program t)      ;; use external ls
   ;;   (setq insert-directory-program "ls")          ;; ls program name
-  ;; ) 
+  ;; )
   (dired-quick-sort-setup)
 )
 )
@@ -2074,6 +2100,7 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 ;; http://stackoverflow.com/questions/6860750/how-to-enable-flyspell-mode-in-emacs-for-all-files-and-all-major-modes
 ;; Turn flyspell on in all modes.
 (add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'emacs-lisp-mode-hook 'flyspell-mode)  ;; For *scratch* mainly. OK?
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 
 ;; ;; Enable flyspell in various modes.
@@ -2574,6 +2601,9 @@ the character typed."
    (goto-char (point-min))
     (while (search-forward "—" nil t) (replace-match "-" nil t))
 
+    ;; (goto-char (point-min))
+    ;; (while (search-forward "" nil t) (replace-match "fi" nil t))
+
    (replace-string "" "`" nil (point-min) (point-max))  ; opening single quote
    (replace-string "" "'" nil (point-min) (point-max))  ; closing single quote
    (replace-string "" "\"" nil (point-min) (point-max))
@@ -2613,6 +2643,13 @@ the character typed."
 ))
 
 ;;; * LaTeX
+
+(use-package auctex-latexmk
+  :load-path "~/dropbox/elisp/bratex"
+  :config
+(require 'bratex)
+(add-hook 'LaTeX-mode-hook #'bratex-config)
+)
 
 ;; To fix problem with parsing error messages from Emacs 24.x onwards:
 ;; http://tex.stackexchange.com/questions/124246/uninformative-error-message-when-using-auctex
@@ -2657,6 +2694,10 @@ the character typed."
    (local-set-key (kbd "C-c u") 'bibtex-updated-date)
    (local-set-key (kbd "C-c p") 'bibtex-completion-open-pdf-of-entry-at-point)
    (local-set-key (kbd "C-c n") 'bibtex-completion-njh-edit-note)
+   (defun mynote ()
+      "Insert mynote field in Bib file."
+      (interactive)
+      (insert "mynote = \"Not printed.\","))
 )
 (add-hook 'bibtex-mode-hook 'my-bibtex-mode-hook)
 
@@ -2675,7 +2716,10 @@ the character typed."
           (local-set-key (kbd "C-c p") 'njh-open-cite-pdf)
           (local-set-key (kbd "C-c n") 'njh-open-cite-note)
           ))
-
+(add-hook 'org-mode-hook '(lambda ()
+          (local-set-key (kbd "C-c p") 'njh-open-cite-pdf)
+          (local-set-key (kbd "C-c n") 'njh-open-cite-note)
+          ))
 
 ;; BibTeX mode.
 (require 'bibtex)
@@ -2824,7 +2868,7 @@ the character typed."
 
 ;; From comment at https://nickhigham.wordpress.com/2016/01/06/managing-bibtex-files-with-emacs/
 (defvar bp/bibtex-fields-ignore-list
-  '("keywords" "abstract" "file" "issn" "url" "eprint" "issue_date"
+  '("keywords" "abstract" "file" "issn" "eprint" "issue_date"
     "articleno" "numpages" "acmid"))
 (defun bp/bibtex-clean-entry-hook ()
   (save-excursion
@@ -3302,9 +3346,14 @@ return `nil'."
 ;; This turns off default packages, one of which (textcomp) messes up
 ;; bullets in itemize.  May only need this when using Lucida.
 ;; Don't think I can specify packages to load here.
+;; [2017-12-12 Tue 20:24] Added the \usepackage but they don't work!
 (add-to-list 'org-latex-classes
 '("basic"
 "\\documentclass[12pt]{extarticle}
+\\usepackage{a4}
+\\usepackage[hyphens]{url}
+\\usepackage{hyperref}
+\\usepackage{amssymb}
 [NO-DEFAULT-PACKAGES]
 [PACKAGES]
 [EXTRA]"
@@ -3408,6 +3457,13 @@ return `nil'."
 ; local in ORG mode (same problem with 'my-insert-TODO).
 (global-set-key (kbd "C-M-u") 'my-top-level)
 (global-set-key [S-f11] 'org2blog/wp-post-subtree)
+
+;; This doesn't work when already at top level.
+;; (defun my-wp-post-subtree ()
+;;   "Move to top outline level then post"
+;;   (interactive)
+;;   (progn (my-top-level) (org2blog/wp-post-subtree)))
+;; (global-set-key [S-f11] 'my-wp-post-subtree)
 
 ;; This is originally assigned to C-j. See how it goes.
 ;; I want it so that lists easier to enter.
@@ -3561,6 +3617,25 @@ table, obtained by prompting the user."
 (add-to-list 'org-emphasis-alist
              '("*" (:foreground "pink")
                ))
+
+;; http://pragmaticemacs.com/emacs/prevent-comments-from-breaking-paragraphs-in-org-mode-latex-export/
+;; Remove comments from org document for use with export hook
+;; https://emacs.stackexchange.com/questions/22574/orgmode-export-how-to-prevent-a-new-line-for-comment-lines
+(defun delete-org-comments (backend)
+  (loop for comment in (reverse (org-element-map (org-element-parse-buffer)
+                    'comment 'identity))
+    do
+    (setf (buffer-substring (org-element-property :begin comment)
+                (org-element-property :end comment))
+          "")))
+;; Add to export hook.
+(add-hook 'org-export-before-processing-hook 'delete-org-comments)
+
+;; Execute this from scratch buffer to remove the hook:
+;; (remove-hook 'org-export-before-processing-hook 'delete-org-comments)
+
+;; http://pragmaticemacs.com/emacs/highlight-latex-text-in-org-mode/
+(setq org-highlight-latex-and-related '(latex))
 
 ;;; * Local Variables
 ;; Local Variables:
