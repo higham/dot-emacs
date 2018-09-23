@@ -35,7 +35,7 @@
 
 (require 'seq)
 (require 'cl)  ;; Temporary: to get loop macro, needed just below.
-               ;;  I think cl is automaticaly loaded by something else.
+               ;; I think cl is automaticaly loaded by something else.
 
 ;;; * Package initialization
 (require 'package)
@@ -50,10 +50,14 @@
 ;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
 ;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
 (defvar required-packages
-  '(ace-link auctex auctex-latexmk bind-key diminish dired-quick-sort
-    edit-server elfeed elfeed-goodies expand-region
-    helm helm-bibtex ivy latex-extra magit ox-pandoc
-    ripgrep smex swiper use-package wc-mode wrap-region yasnippet)
+  '(ace-jump-buffer ace-jump-mode ace-jump-zap ace-link ace-window anzu auctex
+    auctex-latexmk bind-key
+    browse-kill-ring bug-hunter clippy counsel dash define-word deft diminish
+    dired-quick-sort edit-server elfeed elfeed-goodies expand-region
+    git-timemachine helm helm-bibtex hydra ibuffer-vc imenu-anywhere ivy
+    latex-extra macrostep magit matlab-mode ox-pandoc ripgrep
+    s shrink-whitespace shell-pop smex swiper switch-window
+    use-package wc-mode wgrep which-key wrap-region yasnippet)
   "A list of packages to ensure are installed at launch.")
 
 (setq use-package-enable-imenu-support t)
@@ -86,7 +90,7 @@
 (bind-key* "C-z" 'scroll-up-keep-cursor)
 
 (use-package which-key
-  :load-path "~/dropbox/elisp/which-key"
+  ;; :load-path "~/dropbox/elisp/which-key"
   :config
   ;; (setq guide-key/highlight-command-regexp "rectangle")
   (which-key-mode)
@@ -96,7 +100,7 @@
 ;; http://endlessparentheses.com/debug-your-emacs-init-file-with-the-bug-hunter.html
 ;; M-x bug-hunter-file [gives error about auctex].
 (use-package bug-hunter
-  :load-path "~/dropbox/elisp/elisp-bug-hunter"
+  ;; :load-path "~/dropbox/elisp/elisp-bug-hunter"
 )
 
 ;;; * System identification
@@ -173,8 +177,9 @@
 (if (system-is-windows)
 (progn
 (setq my-backup-dest "c:/emacs_backups/")
+; Removed r: on [2018-07-01 Sun 17:55] as Emacs is writing to C: anyway!
 ; "ACL errors" on writing to C: in Windows 10, hence:
-(if (system-is-Chill) (setq my-backup-dest "r:/emacs_backups/") )
+; (if (system-is-Chill) (setq my-backup-dest "r:/emacs_backups/") )
 (if (not (file-exists-p my-backup-dest))
         (make-directory my-backup-dest t))
 ;; (make-directory my-backup-dest t)
@@ -221,7 +226,7 @@
 
 ;----------------------------------------------------------------------
 (use-package anzu
-  :load-path "~/Dropbox/elisp/anzu"
+  ;; :load-path "~/Dropbox/elisp/anzu"
   :config
   (global-anzu-mode 1)
   (set-face-attribute 'anzu-mode-line nil
@@ -251,7 +256,7 @@
 
 ;; -----------------------------------------------------------------
 
-(add-to-list 'load-path "~/dropbox/elisp/org/contrib/lisp")
+;; (add-to-list 'load-path "~/dropbox/elisp/org/contrib/lisp")
 ;; (require 'org-drill)
 
 ;; Smooth scrolling 1 line per time (default is 5).
@@ -261,7 +266,7 @@
 ;; ------------------------------------------------
 
 (use-package smex
-  :load-path "~/dropbox/elisp/smex-master"
+  ;; :load-path "~/dropbox/elisp/smex-master"
   :init (smex-initialize)
   :bind (("M-x" . smex)
          ("M-X" . smex-major-mode-commands)
@@ -272,7 +277,7 @@
 )
 
 (use-package shrink-whitespace
-  :load-path "~/dropbox/elisp/shrink-whitespace"
+  ;; :load-path "~/dropbox/elisp/shrink-whitespace"
   :bind ("M-SPC". shrink-whitespace)
 )
 
@@ -288,10 +293,10 @@
 ; ----------------- Neatly load some packages -----------------------
 ;; Dash is needed by ace-jump-buffer and wrap-region.
 ; If :defer on next line then ace-jump-buffer doesn't work.
-(use-package dash                    :load-path "~/dropbox/elisp/dash")
-(use-package s           :defer t    :load-path "~/Dropbox/elisp/s")
+(use-package dash) ;;                    :load-path "~/dropbox/elisp/dash")
+(use-package s ) ;;          :defer t    :load-path "~/Dropbox/elisp/s")
 
-(use-package git-timemachine :load-path  "~/Dropbox/elisp/git-timemachine")
+(use-package git-timemachine) ;; :load-path  "~/Dropbox/elisp/git-timemachine")
 
 (use-package fill-column-indicator)
 
@@ -383,7 +388,7 @@
 ; Interactive macro expansion as used by Jwiegley.
 ; https://github.com/joddie/macrostep
 (use-package macrostep
-  :load-path "~/dropbox/elisp/macrostep"
+  ;; :load-path "~/dropbox/elisp/macrostep"
   :bind ("C-c e m" . macrostep-expand))
 
 ;; http://pages.sachachua.com/.emacs.d/Sacha.html
@@ -404,13 +409,15 @@
 ;; http://pragmaticemacs.com/emacs/dont-kill-buffer-kill-this-buffer-instead/
 (global-set-key (kbd "C-x k") 'kill-this-buffer)
 
-(add-to-list 'load-path "~/dropbox/elisp/browse-kill-ring")
-(require 'browse-kill-ring)
-(browse-kill-ring-default-keybindings)
+;; (add-to-list 'load-path "~/dropbox/elisp/browse-kill-ring")
+(use-package browse-kill-ring
+   :config
+   (browse-kill-ring-default-keybindings)
+)
 
 ;; http://www.blogbyben.com/2013/08/a-tiny-eshell-add-on-jump-to-shell.html
-(add-to-list 'load-path "~/dropbox/elisp/shell-pop")
-(require 'shell-pop)
+;; (add-to-list 'load-path "~/dropbox/elisp/shell-pop")
+(use-package shell-pop)
 (global-set-key [S-f3] 'shell-pop) ;; Default is buffer's dir.
 
 ;; Reload .emacs.
@@ -526,11 +533,12 @@
 ;;      (define-key map (kbd "TAB") 'yas-expand)
 ;;      ))
 ;;  :defer t
-  :demand  ;; Found this needed for yas to be turned on when first needed.
+;  :demand  ;; Found this needed for yas to be turned on when first needed.
+  :ensure t
   :diminish yas-minor-mode
 ; :commands (yas-expand yas-minor-mode)
   :config
-  (setq yas-snippet-dirs '("~/dropbox/elisp/yasnippet/snippets"))
+  (setq yas-snippet-dirs '("~/dropbox/elisp/snippets"))
   (yas-global-mode 1)
   ;; This works, but leaves C-c & as a prefix command, so cannot assign a
   ;; command to it.
@@ -560,23 +568,22 @@
 ;; (yas-global-mode 1)
 ;; (setq yas-wrap-around-region 'cua)
 
-(use-package helm-c-yasnippet
-  :disabled t
-  ;; https://github.com/emacs-helm/helm-c-yasnippet
-  :load-path "~/dropbox/elisp/helm-c-yasnippet"
-  :
-  :config
-  (setq helm-yas-space-match-any-greedy t) ;[default: nil]
-  (yas-global-mode 1)
-  (yas-load-directory "~/dropbox/elisp/yasnippet/snippets")
-  (setq helm-yas-display-key-on-candidate t)
-)
+;; (use-package helm-c-yasnippet
+;;   :disabled t
+;;   ;; https://github.com/emacs-helm/helm-c-yasnippet
+;;   ;; :load-path "~/dropbox/elisp/helm-c-yasnippet"
+;;   :config
+;;   (setq helm-yas-space-match-any-greedy t) ;[default: nil]
+;;   (yas-global-mode 1)
+;;   (yas-load-directory "~/dropbox/elisp/yasnippet/snippets")
+;;   (setq helm-yas-display-key-on-candidate t)
+;; )
 
 ; -------------------------------------------------------------------
 ;; ;; Navigate use-package definitions in .emacs.
 ;; ;; http://irreal.org/blog/?p=3979
 (use-package imenu-anywhere
-   :load-path "~/dropbox/elisp/imenu-anywhere"
+   ;; :load-path "~/dropbox/elisp/imenu-anywhere"
    :init (global-set-key (kbd "C-c =") 'imenu-anywhere)
 )
 ;; No longer needed, since use-package now does this itself.
@@ -595,16 +602,21 @@
   :config
   (progn
     (ivy-mode 1)
+;;    (setq enable-recursive-minibuffers t)  ;; Dangerous?
     (setq ivy-use-virtual-buffers t
           ivy-count-format "%d/%d ")
     (global-set-key (kbd "C-S-s") 'swiper)
+    (global-set-key (kbd "<f6>") 'ivy-resume)
+    (global-set-key (kbd "<f6>") 'ivy-resume)
     (global-set-key (kbd "C-x C-b") 'ivy-switch-buffer)
+    (global-set-key (kbd "C-S-f") 'counsel-find-file)
+    (global-set-key (kbd "C-c g") 'counsel-git)
     ))
 ;; ----------------------------------------------------
                                         ;
 ;; http://oremacs.com/2015/05/22/define-word/
 (use-package define-word
-  :load-path "~/dropbox/elisp/define-word"
+;;  :load-path "~/dropbox/elisp/define-word"
   :bind (("M-g d" . define-word-at-point)
          ("M-g M-d" . define-word-at-point)
          ("M-g D" . define-word)))
@@ -842,6 +854,19 @@ Emacs buffers are those whose name starts with *."
 (global-set-key (kbd "C-M-n") 'previous-buffer-same-mode)
 (global-set-key (kbd "C-M-p") 'next-buffer-same-mode)
 
+;; --------------------------------------
+;; http://pragmaticemacs.com/emacs/make-quick-notes-with-deft/
+(use-package deft)
+(setq deft-directory "~/memo")
+(setq deft-extensions '("org"))
+(setq deft-default-extension "org")
+(setq deft-text-mode 'org-mode)
+(setq deft-use-filename-as-title t)
+(setq deft-use-filter-string-for-filename t)
+(setq deft-auto-save-interval 0)
+;;key to launch deft
+;; (global-set-key (kbd "C-c d") 'deft)
+
 ;; -------------------------------------------------
 ;; Elfeed
 ;; From http://cestlaz.github.io/posts/using-emacs-29%20elfeed/#.WLd6QxxBSRd
@@ -909,11 +934,13 @@ Emacs buffers are those whose name starts with *."
 ;; -------------------------------------------------
 ;; Hydra
 
-(add-to-list 'load-path "~/dropbox/elisp/hydra")
-(require 'hydra)
-(global-set-key (kbd "C-x m") 'hydra-major/body)
-(global-set-key (kbd "<f3>")   'hydra-bib-etc/body)
-(global-set-key (kbd "C-<f3>") 'hydra-dired/body)
+;; (add-to-list 'load-path "~/dropbox/elisp/hydra")
+(use-package hydra
+  :config
+  (global-set-key (kbd "C-x m") 'hydra-major/body)
+  (global-set-key (kbd "<f3>")   'hydra-bib-etc/body)
+  (global-set-key (kbd "C-<f3>") 'hydra-dired/body)
+)
 
 (defhydra hydra-major (:color blue :columns 4)
   "major-mode"
@@ -1126,16 +1153,16 @@ already narrowed."
 ;; Why does the define-key line fail on loading?
 )
 
-(add-to-list 'load-path "~/Dropbox/elisp/ace-jump-mode-master")
-(require 'ace-jump-mode)
+;; (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-mode-master")
+(use-package ace-jump-mode)
 (define-key global-map (kbd "C-x SPC") 'ace-jump-mode)
 ;; Default C-c SPC clashes with ORG mode.
 (global-set-key (kbd "M-a") 'ace-jump-word-mode)
 (global-set-key (kbd "M-c") 'ace-jump-char-mode)
 (global-set-key (kbd "M-l") 'ace-jump-line-mode)
 
-(add-to-list 'load-path "~/Dropbox/elisp/ace-jump-zap-master")
-(require 'ace-jump-zap)
+;; (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-zap-master")
+(use-package ace-jump-zap)
 ; dwim variants give standard zap or ace-jump-zap with C-u prefix.
 ; http://sachachua.com/blog/series/emacs-kaizen/
 (global-set-key (kbd "M-z") 'ace-jump-zap-up-to-char-dwim)
@@ -1144,8 +1171,8 @@ already narrowed."
 ;; (global-set-key (kbd "M-z") 'zap-up-to-char)
 ;; (global-set-key (kbd "M-Z") 'zap-to-char)  ;; default is M-z
 
-(add-to-list 'load-path "~/Dropbox/elisp/ace-jump-buffer")
-(require 'ace-jump-buffer)
+;; (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-buffer")
+(use-package ace-jump-buffer)
 (global-set-key (kbd "M-b") 'ace-jump-buffer)
 (global-set-key (kbd "M-B") 'ace-jump-same-mode-buffers)
 
@@ -1231,9 +1258,11 @@ already narrowed."
 
 ;;----------------------------------------------
 ;; popup tips
-(add-to-list 'load-path "~/Dropbox/elisp/clippy-el-master")
-(require 'clippy)
-(global-set-key [M-f3] 'clippy-describe-function)
+;; (add-to-list 'load-path "~/Dropbox/elisp/clippy-el-master")
+(use-package clippy
+  :config
+  (global-set-key [M-f3] 'clippy-describe-function)
+)
 
 ;;----------------------------------------------
 
@@ -1313,8 +1342,8 @@ Works in Microsoft Windows, Mac OS X, Linux."
 )
 
 ;; -----------------------------------------
-(add-to-list 'load-path "~/Dropbox/elisp/mhayashi1120-Emacs-wgrep-f701229")
-(require 'wgrep)
+;; (add-to-list 'load-path "~/Dropbox/elisp/mhayashi1120-Emacs-wgrep-f701229")
+(use-package wgrep)
 
 ;; -----  Screen.
 
@@ -1462,8 +1491,8 @@ Works in Microsoft Windows, Mac OS X, Linux."
       (lambda () (setq truncate-lines nil)))
 
 ;; ibuffer-vc
-(add-to-list 'load-path "~/Dropbox/elisp/ibuffer-vc-master")
-(require 'ibuffer-vc)
+;; (add-to-list 'load-path "~/Dropbox/elisp/ibuffer-vc-master")
+(use-package ibuffer-vc)
 
 ;; Ido mode.
 ;; http://www.masteringemacs.org/articles/2010/10/10/introduction-to-ido-mode/
@@ -2043,12 +2072,12 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (define-key isearch-mode-map (kbd "<backspace>") 'mydelete)
 
 ;;------------------------
-(add-to-list 'load-path "~/dropbox/elisp/switch-window-master")
-(require 'switch-window)
+;; (add-to-list 'load-path "~/dropbox/elisp/switch-window-master")
+(use-package switch-window)
 (global-set-key (kbd "C-x o") 'switch-window)
 
-(add-to-list 'load-path "~/dropbox/elisp/ace-window-master")
-(require 'ace-window)
+;; (add-to-list 'load-path "~/dropbox/elisp/ace-window-master")
+(use-package ace-window)
 (global-set-key [f2]          'ace-window)
 
 ;; Quicker window splitting
@@ -2535,7 +2564,7 @@ the character typed."
 ;; MATLAB mode (http://www.emacswiki.org/emacs/MatlabMode)
 
 (use-package matlab-load
-  :load-path "~/Dropbox/elisp/matlab-emacs"
+;;  :load-path "~/Dropbox/elisp/matlab-emacs"
   :mode ("\\.m\\'" . matlab-mode)
   ; Prev line replaces: (add-to-list 'auto-mode-alist '("\\.m$" . matlab-mode))
   :init (autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
@@ -2600,6 +2629,9 @@ the character typed."
 
    (goto-char (point-min))
     (while (search-forward "—" nil t) (replace-match "-" nil t))
+
+   (goto-char (point-min))
+   (while (search-forward "−" nil t) (replace-match "-" nil t))
 
     ;; (goto-char (point-min))
     ;; (while (search-forward "" nil t) (replace-match "fi" nil t))
@@ -3119,6 +3151,18 @@ the character typed."
 ;; See also, for a different set of arguments to Skim (oddly):
 ;; http://stackoverflow.com/questions/7899845/emacs-synctex-skim-how-to-correctly-set-up-syncronization-none-of-the-exia
 
+;; My function to open TeX file in Acrobat (for printing or talk).
+;; Only intended for Windows.  Heed to modify for Mac.
+;; https://stackoverflow.com/questions/17325713/looking-for-a-replace-in-string-function-in-elisp
+(defun open-in-acrobat (arg)
+  "Open PDF of current LaTeX buffer in Acrobat."
+  (interactive "p")
+  (shell-command
+   (concat "start /pgm Acrobat.exe "
+   (file-name-sans-extension (buffer-file-name)) ".pdf" )
+   ))
+(global-set-key [C-S-f5]'open-in-acrobat)
+
 ;; http://tex.stackexchange.com/questions/24510/pdflatex-fails-within-emacs-app-but-works-in-terminal
 ;; This is needed on MBPro w/Mountain Lion and TeXLiVe 2012
 ;; in order that pdflatex is found.
@@ -3126,7 +3170,7 @@ the character typed."
 (progn
 ; For LaTeX:
 (setenv "PATH"
-(concat "/usr/texbin" ":" (getenv "PATH")))
+(concat "/usr/texbin" ":" "/Library/TeX/texbin" ":" (getenv "PATH")))
 ; For gpg:
 ; http://danzorx.tumblr.com/post/11976550618/easypg-for-emacs-on-os-x-or-sometimes-emacs-doesnt
 (add-to-list 'exec-path "/usr/local/bin")
@@ -3636,6 +3680,43 @@ table, obtained by prompting the user."
 
 ;; http://pragmaticemacs.com/emacs/highlight-latex-text-in-org-mode/
 (setq org-highlight-latex-and-related '(latex))
+
+;; For converting org tables to csv in place.
+;; Useful if have several table separated by text.
+;; https://stackoverflow.com/questions/17717483/howto-convert-org-mode-table-to-original-tabbed-format
+(defun org-table-transform-in-place ()
+  "Just like `ORG-TABLE-EXPORT', but instead of exporting to a
+  file, replace table with data formatted according to user's
+  choice, where the format choices are the same as
+  org-table-export."
+  (interactive)
+  (unless (org-at-table-p) (user-error "No table at point"))
+  (org-table-align)
+  (let* ((format
+      (completing-read "Transform table function: "
+               '("orgtbl-to-tsv" "orgtbl-to-csv" "orgtbl-to-latex"
+                 "orgtbl-to-html" "orgtbl-to-generic"
+                 "orgtbl-to-texinfo" "orgtbl-to-orgtbl"
+                 "orgtbl-to-unicode")))
+     (curr-point (point)))
+    (if (string-match "\\([^ \t\r\n]+\\)\\( +.*\\)?" format)
+    (let ((transform (intern (match-string 1 format)))
+          (params (and (match-end 2)
+               (read (concat "(" (match-string 2 format) ")"))))
+          (table (org-table-to-lisp
+              (buffer-substring-no-properties
+               (org-table-begin) (org-table-end)))))
+      (unless (fboundp transform)
+        (user-error "No such transformation function %s" transform))
+      (save-restriction
+        (with-output-to-string
+          (delete-region (org-table-begin) (org-table-end))
+          (insert (funcall transform table params) "\n")))
+      (goto-char curr-point)
+      (beginning-of-line)
+      (message "Tranformation done."))
+      (user-error "Table export format invalid"))))
+
 
 ;;; * Local Variables
 ;; Local Variables:
