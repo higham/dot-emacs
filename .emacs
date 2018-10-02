@@ -2603,7 +2603,7 @@ the character typed."
 (defun tidy (begin end)
   "Replace non-ASCII characters in region, or buffer if no region."
   (interactive "r")
-  (save-restriction
+  (save-excursion(save-restriction
 
     ;; Adapted from narrow-or-widen-dwim, so as to use buffer if no region.
     (cond ( (region-active-p)
@@ -2645,7 +2645,7 @@ the character typed."
 ;; whole file!
 ;;    (replace-string "
 ;; " "" nil (point-min) (point-max))
-))
+)))
 
 ;; http://stackoverflow.com/questions/730751/hiding-m-in-emacs
 ;; Get rid of "^M" displayed in file (Emacs will have set Unix mode).
@@ -2656,7 +2656,7 @@ the character typed."
     (goto-char (point-min))
       (while (search-forward (string ?\C-m) nil t) (replace-match "")))
 
-;; For making comma-seperated list of keywords from list of words.
+;; For making comma-separated list of keywords from list of words.
 (defun make-keywords (begin end)
   "Replace non-ASCII characters in region, or buffer if no region."
     ;; Adapted from tidy.
@@ -3721,5 +3721,5 @@ table, obtained by prompting the user."
 ;;; * Local Variables
 ;; Local Variables:
 ;; eval: (orgstruct-mode 1).
-;; orgstruct-heading-prefix-regexp: ";;; "
-;; End:
+;; orgstruct-heading-prefix-regexp: ";;; ";
+; End:
