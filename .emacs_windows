@@ -19,3 +19,4 @@
 ;;      (expand-file-name "~/.emacs.d/elpa/package.el"))
 ;;   (package-initialize))
 (put 'narrow-to-region 'disabled nil)
+(put 'LaTeX-narrow-to-environment 'disabled nil)

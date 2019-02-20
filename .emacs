@@ -54,8 +54,9 @@
     auctex-latexmk bind-key
     browse-kill-ring bug-hunter clippy counsel dash define-word deft diminish
     dired-quick-sort edit-server elfeed elfeed-goodies expand-region
+    fireplace fix-word
     git-timemachine helm helm-bibtex hydra ibuffer-vc imenu-anywhere ivy
-    latex-extra macrostep magit matlab-mode ox-pandoc ripgrep
+    latex-extra macrostep magit matlab-mode outshine ox-pandoc ripgrep
     s shrink-whitespace shell-pop smex swiper switch-window
     use-package wc-mode wgrep which-key wrap-region yasnippet)
   "A list of packages to ensure are installed at launch.")
@@ -154,6 +155,11 @@
 (interactive)
 "Return true if the system we are running on iMac"
 (string-equal system-name "Nick-iMac.local"))
+
+(defun system-is-LenovoWork ()
+(interactive)
+"Return true if the system we are running on iMac"
+(string-equal system-name "DESKTOP-FRS0UAE"))
 
 ;;; * Backups
 
@@ -473,8 +479,9 @@
         "~/texmf/bibtex/bib/njhigham_extra.bib"
         ))
 
-(setq bibtex-completion-library-path '("~/pdf_papers/" "~/pdf_papers/higham/"
-                                       "~/pdf_books/"))
+(setq bibtex-completion-library-path
+      '("~/pdf_papers/" "~/pdf_papers/higham/" "~/pdf_books/"
+         "~/pdf_papers/tex/" "~/pdf_other/pdf_thesis/" ))
 ;; ;; This obsolete, but try anyway.
 ;; (setq helm-bibtex-library-path '("~/pdf_papers" "~/pdf_papers/higham"
 ;;                                 "~/pdf_books"))
@@ -600,18 +607,18 @@
 (use-package swiper
   :ensure try
   :config
-  (progn
+;;  (progn
     (ivy-mode 1)
 ;;    (setq enable-recursive-minibuffers t)  ;; Dangerous?
     (setq ivy-use-virtual-buffers t
           ivy-count-format "%d/%d ")
     (global-set-key (kbd "C-S-s") 'swiper)
     (global-set-key (kbd "<f6>") 'ivy-resume)
-    (global-set-key (kbd "<f6>") 'ivy-resume)
     (global-set-key (kbd "C-x C-b") 'ivy-switch-buffer)
     (global-set-key (kbd "C-S-f") 'counsel-find-file)
     (global-set-key (kbd "C-c g") 'counsel-git)
-    ))
+    )
+;; )
 ;; ----------------------------------------------------
                                         ;
 ;; http://oremacs.com/2015/05/22/define-word/
@@ -725,14 +732,14 @@
 ;; http://emacs.stackexchange.com/questions/13970/fixing-double-capitals-as-i-type/13975#13975
 ;; These work backwards when point between words.
 (use-package fix-word
-  :load-path "~/dropbox/elisp/fix-word"
+;;  :load-path "~/dropbox/elisp/fix-word"
   :bind (("S-M-<f8>" . fix-word-upcase)
          ("C-<f8>"   . fix-word-downcase)
          ("S-<f8>"   . fix-word-capitalize)
 ))
 
 (use-package fireplace
-  :load-path "~/dropbox/elisp/fireplace"
+;;  :load-path "~/dropbox/elisp/fireplace"
 )
 
 ;; http://ergoemacs.org/emacs/modernization_upcase-word.html
@@ -1133,12 +1140,18 @@ already narrowed."
     (local-unset-key "\C-c\C-d") ; Prefer date.
     ))
 
-(add-hook 'LaTeX-mode-hook #'latex-extra-mode) ; Activate latex-extra
-;; Disable C-c C-u from latex-extra (prefer LaTeX-star-environment below).
-;; Next line seemed to wipe out latex-extra and reftex key bindings:
-;; (add-hook 'LaTeX-mode-hook '(lambda () (define-key latex-extra-mode-map "" nil)))
-;; So replaced by this:
-(add-hook 'LaTeX-mode-hook '(lambda () (define-key latex-extra-mode-map (kbd "C-c C-u") nil)))
+;; [2019-01-02 Wed 19:45] removed next block as I'm now getting
+;; "File mode specification error: (void-variable latex-extra-mode-map)"
+;; and this is stopping other hooks running, notably AucTeX master file
+;; is not working.
+;; [2019-01-03 Thu 18:17] Could check if this was related to Org problems.
+;;
+;; (add-hook 'LaTeX-mode-hook #'latex-extra-mode) ; Activate latex-extra
+;; ;; Disable C-c C-u from latex-extra (prefer LaTeX-star-environment below).
+;; ;; Next line seemed to wipe out latex-extra and reftex key bindings:
+;; ;; (add-hook 'LaTeX-mode-hook '(lambda () (define-key latex-extra-mode-map "" nil)))
+;; ;; So replaced by this:
+;; (add-hook 'LaTeX-mode-hook '(lambda () (define-key latex-extra-mode-map (kbd "C-c C-u") nil)))
 
 ;; (add-hook 'LaTeX-mode-hook
 ;; 	  '(lambda()
@@ -1187,10 +1200,16 @@ already narrowed."
 (save-place-mode 1)
 (setq save-place-file "~/dropbox/.places")
 
+;; Needed no orgstruct has gone.  Setup incomplete - docs not helpful!
+(use-package outshine)
+(defvar outline-minor-mode-prefix "\M-#")
 ;; ----------------------------------------------------------
 ;; From http://lumiere.ens.fr/~guerry/u/emacs.el
-(add-hook 'emacs-lisp-mode-hook 'turn-on-orgstruct++)
-(add-hook 'mail-mode-hook 'turn-on-orgstruct++)
+;; (add-hook 'emacs-lisp-mode-hook 'turn-on-orgstruct++)
+(add-hook 'emacs-lisp-mode-hook 'outshine-mode)
+;; (add-hook 'mail-mode-hook 'turn-on-orgstruct++)
+(add-hook 'mail-mode-hook 'outshine-mode)
+
 ;; http://pragmaticemacs.com/emacs/use-org-mode-tables-and-structures-in-emails-and-elsewhere/
 (add-hook 'mail-mode-hook 'turn-on-orgtbl)
 ;;----------------------------------------------
@@ -1404,6 +1423,13 @@ Works in Microsoft Windows, Mac OS X, Linux."
 (if (or (system-is-Chill) (system-is-iMac))
 (setq default-frame-alist
       '((top . 35) (left . 1600)
+        (width . 81) (height . 55)
+        )))
+
+;; Fran's Lenovo 27" screen.
+(if (or (system-is-LenovoWork))
+(setq default-frame-alist
+      '((top . 45) (left . 2300)
         (width . 81) (height . 55)
         )))
 
@@ -2603,38 +2629,50 @@ the character typed."
 (defun tidy (begin end)
   "Replace non-ASCII characters in region, or buffer if no region."
   (interactive "r")
-  (save-excursion(save-restriction
+  (save-excursion
+    (save-restriction
+    (narrow-to-region begin end)
 
     ;; Adapted from narrow-or-widen-dwim, so as to use buffer if no region.
-    (cond ( (region-active-p)
-            (narrow-to-region (region-beginning) (region-end)) ))
+    ;; (cond ( (region-active-p)
+    ;;         (narrow-to-region (region-beginning) (region-end)) ))
 
-    (goto-char (point-min))
-    (while (search-forward "“" nil t) (replace-match "\"" nil t))
+   ;;  (goto-char (point-min))
+   ;;  (while (search-forward "“" nil t) (replace-match "\"" nil t))
 
-    (goto-char (point-min))
-    (while (search-forward "”" nil t) (replace-match "\"" nil t))
+   ;;  (goto-char (point-min))
+   ;;  (while (search-forward "”" nil t) (replace-match "\"" nil t))
 
-   (goto-char (point-min))
-    (while (search-forward "’" nil t) (replace-match "'" nil t))
+   ;; (goto-char (point-min))
+   ;;  (while (search-forward "’" nil t) (replace-match "'" nil t))
 
-   (goto-char (point-min))
-    (while (search-forward "‘" nil t) (replace-match "'" nil t))
+   ;; (goto-char (point-min))
+   ;;  (while (search-forward "‘" nil t) (replace-match "'" nil t))
 
-   (goto-char (point-min))
-    (while (search-forward "…" nil t) (replace-match "..." nil t))
+   ;; (goto-char (point-min))
+   ;;  (while (search-forward "…" nil t) (replace-match "..." nil t))
 
-   (goto-char (point-min))
-    (while (search-forward "–" nil t) (replace-match "-" nil t))
+   ;; (goto-char (point-min))
+   ;;  (while (search-forward "–" nil t) (replace-match "-" nil t))
 
-   (goto-char (point-min))
-    (while (search-forward "—" nil t) (replace-match "-" nil t))
+   ;; (goto-char (point-min))
+   ;;  (while (search-forward "—" nil t) (replace-match "-" nil t))
 
-   (goto-char (point-min))
-   (while (search-forward "−" nil t) (replace-match "-" nil t))
+   ;; (goto-char (point-min))
+   ;; (while (search-forward "−" nil t) (replace-match "-" nil t))
 
     ;; (goto-char (point-min))
     ;; (while (search-forward "" nil t) (replace-match "fi" nil t))
+
+   (replace-string "“" "\""  nil (point-min) (point-max))
+   (replace-string "”" "\""  nil (point-min) (point-max))
+   (replace-string "’" "'"   nil (point-min) (point-max))
+   (replace-string "‘" "'"   nil (point-min) (point-max))
+   (replace-string "…" "..." nil (point-min) (point-max))
+   (replace-string "–" "-"   nil (point-min) (point-max))
+   (replace-string "—" "-"   nil (point-min) (point-max))
+   (replace-string "−" "-"   nil (point-min) (point-max))
+   (replace-string "—" "-"   nil (point-min) (point-max))
 
    (replace-string "" "`" nil (point-min) (point-max))  ; opening single quote
    (replace-string "" "'" nil (point-min) (point-max))  ; closing single quote
@@ -3535,10 +3573,11 @@ return `nil'."
              )
 )
 
-;; http://irreal.org/blog/?p=2029
-(add-to-list 'org-structure-template-alist
-             '("n" "#+BEGIN_COMMENT\n?\n#+END_COMMENT"
-               "<comment>\n?\n</comment>"))
+;; Needs updating for Org 9.2.
+;; ;; http://irreal.org/blog/?p=2029
+;; (add-to-list 'org-structure-template-alist
+;;              '("n" "#+BEGIN_COMMENT\n?\n#+END_COMMENT"
+;;                "<comment>\n?\n</comment>"))
 
 ;; Now in Org 7.8.11 as org-table-transpose-table-at-point
 ;; http://orgmode.org/worg/org-hacks.html

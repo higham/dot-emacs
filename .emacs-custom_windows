@@ -196,7 +196,7 @@
       (1.7000000000000002 . 3.44)))))
  '(package-selected-packages
    (quote
-    (deft matlab-mode edit-server org latex-extra ace-popup-menu ox-pandoc auctex-latexmk auctex ripgrep wc-mode dired-quick-sort ht ace-link magit counsel gnupg try swiper ivy wttrin goto-chg char-menu helm-bibtex helm smex color-theme chess browse-kill-ring)))
+    (org deft matlab-mode edit-server latex-extra ace-popup-menu ox-pandoc auctex-latexmk auctex ripgrep wc-mode dired-quick-sort ht ace-link magit counsel gnupg try swiper ivy wttrin goto-chg char-menu helm-bibtex helm smex color-theme chess browse-kill-ring)))
  '(show-paren-mode t)
  '(tool-bar-mode nil)
  '(truncate-lines t)
