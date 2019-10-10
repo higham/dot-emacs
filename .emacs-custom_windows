@@ -185,7 +185,7 @@
  '(custom-safe-themes
    (quote
     ("5c0bd4603cd0debcf77663cc58c5799264986bfe72365ccd764684ddd72fe327" "3a0248176bf115cd53e0f15e30bb338b55e2a09f1f9508794fcd3c623725c8bd" "bbf167fe047cd96e9df341d056a7d09e5e719a523d02d32b6eb5fa4909a4552d" "de69753c26f925ea5128458f7332749159ae5742cc042520c5faa63b5048d67d" "c58fed6b9f59b9f34090ec243811d19d421793ee5ce3e9a54faf2a03b270c2dd" "7adc287f3aa1754cb83777bc0a87f5e24a56db5786cd911110cfb77dd4ac0c9e" "00eb979b54538aa5be4bedf0df4ecd79bfb0163d7c479b721b297162a411aca3" "fc89666d6de5e1d75e6fe4210bd20be560a68982da7f352bd19c1033fb7583ba" "0a47a318b366c8d5bf2a4738ff4cea9988c60f4b3b7f7a31cff565a7889406a5" default)))
- '(epg-gpg-program "c:/program files (x86)/gnu/gnupg/gpg2.exe")
+ '(epg-gpg-program "c:/program files (x86)/gnupg/bin/gpg.exe")
  '(magit-git-executable "c:\\program files\\git\\bin\\git.exe")
  '(org-drill-optimal-factor-matrix
    (quote

@@ -56,7 +56,7 @@
     dired-quick-sort edit-server elfeed elfeed-goodies expand-region
     fireplace fix-word
     git-timemachine helm helm-bibtex hydra ibuffer-vc imenu-anywhere ivy
-    latex-extra macrostep magit matlab-mode outshine ox-pandoc ripgrep
+    latex-extra macrostep magit matlab-mode orgalist outshine ox-pandoc ripgrep
     s shrink-whitespace shell-pop smex swiper switch-window
     use-package wc-mode wgrep which-key wrap-region yasnippet)
   "A list of packages to ensure are installed at launch.")
@@ -137,6 +137,7 @@
     (string-equal system-name "MacBook13-2013.local")
     (string-equal system-name "Fran-MBP13.local")
     (string-equal system-name "Fran-MBP13")
+    (string-equal system-name "NJH-MBP13")
     (string-equal system-name "macbook-13r-njh") ))
 
 (defun system-is-Dell ()
@@ -150,6 +151,13 @@
 ;; (string-equal system-name "DESKTOP-II9K04F")) ; OC VII.
 ;; (string-equal system-name "Nick-Chill")) ; Fusion tranquility.
 (string-equal system-name "Chillblast-Nick")) ; OC VII.
+
+(defun system-is-Lenovo ()
+(interactive)
+"Return true if the system we are running on Lenovo 520c"
+;; (string-equal system-name "DESKTOP-II9K04F")) ;
+;; (string-equal system-name "Nick-Chill")) ; Fusion tranquility.
+(string-equal system-name "DESKTOP-5FDC726")) ; Lenovo 520c
 
 (defun system-is-iMac ()
 (interactive)
@@ -248,7 +256,8 @@
 )
 ; ----------------------------------------------------------------------
 ;; For latest ORG mode downloaded by me.
-(add-to-list 'load-path "~/Dropbox/elisp/org/lisp")
+;; But now I use ELpa.
+; (add-to-list 'load-path "~/Dropbox/elisp/org/lisp")
 ;; Next line seems needed to make org functions available outside org,
 ;; before org has been invoked (C-c d above).
 (require 'org-install)
@@ -256,7 +265,7 @@
 ;; Customize status line.
 (require 'diminish)
 (diminish 'abbrev-mode)
-(eval-after-load "org" '(diminish 'orgstruct-mode "OrgS"))
+;; (eval-after-load "org" '(diminish 'orgstruct-mode "OrgS"))
 
 (setq frame-title-format "%f - %p"); Titlebar contains buffer name (only).
 
@@ -481,7 +490,8 @@
 
 (setq bibtex-completion-library-path
       '("~/pdf_papers/" "~/pdf_papers/higham/" "~/pdf_books/"
-         "~/pdf_papers/tex/" "~/pdf_other/pdf_thesis/" ))
+        "~/pdf_books/writing" "~/pdf_papers/tex/"
+        "~/pdf_other/pdf_thesis/" ))
 ;; ;; This obsolete, but try anyway.
 ;; (setq helm-bibtex-library-path '("~/pdf_papers" "~/pdf_papers/higham"
 ;;                                 "~/pdf_books"))
@@ -612,13 +622,30 @@
 ;;    (setq enable-recursive-minibuffers t)  ;; Dangerous?
     (setq ivy-use-virtual-buffers t
           ivy-count-format "%d/%d ")
+    (global-set-key (kbd "C-M-s") 'isearch-forward) ;; Keep isearch option.
+    (global-set-key (kbd "C-M-r") 'isearch-backward)
     (global-set-key (kbd "C-S-s") 'swiper)
+    (global-set-key (kbd "C-s") 'swiper-isearch)
     (global-set-key (kbd "<f6>") 'ivy-resume)
     (global-set-key (kbd "C-x C-b") 'ivy-switch-buffer)
+    (global-set-key (kbd "C-9")   'ivy-switch-buffer)
     (global-set-key (kbd "C-S-f") 'counsel-find-file)
     (global-set-key (kbd "C-c g") 'counsel-git)
     )
 ;; )
+
+;; http://mbork.pl/2014-04-04_Fast_buffer_switching_and_friends
+(defun switch-bury-or-kill-buffer (&optional aggr)
+  "With no argument, switch (but unlike C-x b, without the need
+to confirm).  With C-u, bury current buffer.  With double C-u,
+kill it (unless it's modified)."
+  (interactive "P")
+  (cond
+   ((eq aggr nil) (switch-to-buffer (other-buffer)))
+   ((equal aggr '(4)) (bury-buffer))
+   ((equal aggr '(16)) (kill-buffer-if-not-modified (current-buffer)))))
+(global-set-key (kbd "C-x C-b") 'switch-bury-or-kill-buffer)
+
 ;; ----------------------------------------------------
                                         ;
 ;; http://oremacs.com/2015/05/22/define-word/
@@ -683,15 +710,18 @@
 
 ;; Recorded again using regexp. For several norms on same line must
 ;; convert starting from end of line due to greedy .*!
+;; Converts \|..\|_2 into \normt{..}.
 (fset 'norm2
    (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([201326629 92 92 124 92 40 46 42 92 41 92 92 124 95 50 13 92 92 110 111 114 109 116 123 92 49 125 13 46] 0 "%d")) arg)))
 (global-set-key (kbd "C-c n") 'norm2)
 
 ;; Macro to convert "From.." to "Dear..." in mail buffer.
-(fset 'my-make-dear
-   (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([C-kp-home 19 45 61 kp-home kp-down 67108896 C-kp-right C-kp-right C-kp-right 23 68 101 97 114 32 C-kp-right kp-left 44 11 return] 0 "%d")) arg)))
+;; (fset 'my-make-dear
+;;    (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([C-kp-home 19 45 61 kp-home kp-down 67108896 C-kp-right C-kp-right C-kp-right 23 68 101 97 114 32 C-kp-right kp-left 44 11 return] 0 "%d")) arg)))
+(fset 'my-make-dear2
+   (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([C-kp-home 19 45 61 45 61 return kp-home kp-down f4 134217850 44 kp-delete 68 101 97 114 C-kp-right C-kp-right kp-left 44 11 kp-enter kp-down] 0 "%d")) arg)))
 (add-hook 'mail-mode-hook
-           (lambda () (define-key mail-mode-map (kbd "<f6>") 'my-make-dear)))
+           (lambda () (define-key mail-mode-map (kbd "<f6>") 'my-make-dear2)))
 (add-hook 'mail-mode 'flyspell-mode)
 
 ;; (add-hook 'mail-mode-hook
@@ -917,10 +947,11 @@ Emacs buffers are those whose name starts with *."
 ; (defalias 'elfeed-toggle-star
 ;  (elfeed-expose #'elfeed-search-toggle-all 'star))
 
-(use-package elfeed-goodies
-  :ensure t
-  :config
-  (elfeed-goodies/setup))
+;; Removed as this pkg is taking 1.845s to load!
+;; (use-package elfeed-goodies
+;;   :ensure t
+;;   :config
+;;   (elfeed-goodies/setup))
 
 (setq elfeed-feeds
       '(
@@ -1087,6 +1118,22 @@ already narrowed."
 (add-hook 'LaTeX-mode-hook
           (lambda () (define-key LaTeX-mode-map "\C-xn" nil)))
 
+;; Could use http://mbork.pl/2014-11-15_LaTeX-narrow-to-environment
+;; instead for LaTeX only - seems more reliable.
+;; But same function doesn't widen.
+;; Invoke this with M-x.
+(defun LaTeX-narrow-to-environment (&optional count)
+  "Narrow buffer to current LaTeX environment (or COUNT
+environments around point)"
+  (interactive "p")
+  (LaTeX-mark-environment count)
+  (narrow-to-region (save-excursion
+		      (goto-char (region-beginning))
+		      (beginning-of-line)
+		      (point))
+		    (region-end))
+  (deactivate-mark))
+
 ;;----------------------------------------------
 ;; From Emacs Starter Kit. See
 (defun eval-and-replace ()
@@ -1200,18 +1247,22 @@ already narrowed."
 (save-place-mode 1)
 (setq save-place-file "~/dropbox/.places")
 
-;; Needed no orgstruct has gone.  Setup incomplete - docs not helpful!
+;; Needed now orgstruct has gone.  Setup incomplete - docs not helpful!
 (use-package outshine)
+(add-hook 'outline-minor-mode-hook 'outshine-mode)
 (defvar outline-minor-mode-prefix "\M-#")
 ;; ----------------------------------------------------------
 ;; From http://lumiere.ens.fr/~guerry/u/emacs.el
 ;; (add-hook 'emacs-lisp-mode-hook 'turn-on-orgstruct++)
 (add-hook 'emacs-lisp-mode-hook 'outshine-mode)
 ;; (add-hook 'mail-mode-hook 'turn-on-orgstruct++)
-(add-hook 'mail-mode-hook 'outshine-mode)
+;; (add-hook 'mail-mode-hook 'outshine-mode)
 
 ;; http://pragmaticemacs.com/emacs/use-org-mode-tables-and-structures-in-emails-and-elsewhere/
-(add-hook 'mail-mode-hook 'turn-on-orgtbl)
+;; (add-hook 'mail-mode-hook 'turn-on-orgtbl)
+;; Commented out as orgtbl-hijacker overwrites various keys!
+;; Invoke orgtbl-mode as needed.
+
 ;;----------------------------------------------
 
 (use-package multiple-cursors
@@ -1420,7 +1471,7 @@ Works in Microsoft Windows, Mac OS X, Linux."
 
 ;; 27" screen for Chillblast.
 ;; (if (or (system-is-Chill) (system-is-iMac) (system-is-Dell))
-(if (or (system-is-Chill) (system-is-iMac))
+(if (or (system-is-Chill) (system-is-iMac) (system-is-Lenovo))
 (setq default-frame-alist
       '((top . 35) (left . 1600)
         (width . 81) (height . 55)
@@ -1891,8 +1942,10 @@ With argument ARG, do this that many times."
 
 (global-set-key (kbd "M-f") 'mark-word)  ; default M-@
 
-(require 'iy-go-to-char)
-(global-set-key (kbd "M-m") 'iy-go-to-char)
+;; Never used this.
+;; (require 'iy-go-to-char)
+;; (global-set-key (kbd "M-m") 'iy-go-to-char)
+(global-set-key (kbd "M-m") `make)
 
 ;; ----------------------------------------------
 ;; Hippie expand.
@@ -2157,6 +2210,7 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'emacs-lisp-mode-hook 'flyspell-mode)  ;; For *scratch* mainly. OK?
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+(add-hook 'mail-mode-hook 'flyspell-mode)
 
 ;; ;; Enable flyspell in various modes.
 ;; BibTeX sets flyspell-mode in later hook.
@@ -3754,8 +3808,13 @@ table, obtained by prompting the user."
       (goto-char curr-point)
       (beginning-of-line)
       (message "Tranformation done."))
-      (user-error "Table export format invalid"))))
+    (user-error "Table export format invalid"))))
 
+;; https://yiufung.net/post/org-mode-hidden-gems-pt1/
+;; Cut out blank lines in collapsed view.
+(setq org-cycle-separator-lines 0)
+;; Avoid inadvertent text edit in invisible area.
+(setq org-catch-invisible-edits 'show-and-error)
 
 ;;; * Local Variables
 ;; Local Variables:
