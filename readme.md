@@ -19,9 +19,8 @@ The setup for the Mac is analogous.
 * The code is lightly documented with links to sources for the
   things I am using.
 
-* I have recently started using John Wiegley's use-package for loading
-  packages.  Not everything is converted and I may convert other packages to
-  load this way.
+* I mostly use John Wiegley's use-package for loading packages.  Not
+  everything uses it and I may convert other packages to load this way.
 
 * Orgstruct mode is turned on by the first line of the file, so pressing
   tab or shift-tab will collapse or expand the file into or from headings,

@@ -21,6 +21,7 @@
  '(anzu-replace-threshold 50)
  '(anzu-replace-to-string-separator " => ")
  '(anzu-search-threshold 1000)
+ '(matlab-functions-have-end nil)
  '(bibtex-BibTeX-entry-alist
    (quote
     (("article" "Article in Journal"

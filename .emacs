@@ -56,7 +56,9 @@
     dired-quick-sort edit-server elfeed elfeed-goodies expand-region
     fireplace fix-word
     git-timemachine helm helm-bibtex hydra ibuffer-vc imenu-anywhere ivy
-    latex-extra macrostep magit matlab-mode orgalist outshine ox-pandoc ripgrep
+    ivy-bibtex latex-extra macrostep magit markdown-mode
+    matlab-mode orgalist org2blog
+    outshine ox-pandoc ripgrep
     s shrink-whitespace shell-pop smex swiper switch-window
     use-package wc-mode wgrep which-key wrap-region yasnippet)
   "A list of packages to ensure are installed at launch.")
@@ -418,6 +420,10 @@
 ;;    (setq undo-tree-visualizer-diff t)        ;; Use d to toggle
     ))
 
+;; https://irreal.org/blog/?p=8614
+;; C-u C-x u to undo changes in region. 
+(setq undo-tree-enable-undo-in-region t)
+
 ; (require 'undo-tree)
 ; (global-undo-tree-mode)
 ; ------------------------------------------------------------
@@ -656,14 +662,25 @@ kill it (unless it's modified)."
          ("M-g D" . define-word)))
 
 ;; org2blog
+(use-package org2blog)
+(add-hook 'org-mode-hook #'org2blog-maybe-start)
+
+(defun o2l()
+  "Log into org2blog."
+  (interactive)
+  (org2blog-user-login))
+
 ; (add-to-list 'load-path "~/dropbox/elisp/org2blog-org-8-support")
-(add-to-list 'load-path "~/dropbox/elisp/org2blog")
-(add-to-list 'load-path "~/dropbox/elisp/metaweblog-master")
-(require 'org2blog-autoloads)
+;; (add-to-list 'load-path "~/dropbox/elisp/org2blog")
+;; (add-to-list 'load-path "~/dropbox/elisp/metaweblog-master")
+;; (require 'org2blog-autoloads)
                                        ; (require 'xml-rpc)
 ;; Load construct that has Wordpress username and password.
 (load-file "~/Dropbox/.emacs-wordpress")
 (setq org2blog/wp-show-post-in-browser 'show)
+(setq org2blog/wp-use-sourcecode-shortcode t)
+(setq org2blog/wp-image-upload t)
+
 ;; Next two lines cause <pre> tags to be converted to WP sourcecode blocks.
 ;; (require 'htmlize)
 ;; (setq org2blog/wp-use-sourcecode-shortcode t)
@@ -723,6 +740,15 @@ kill it (unless it's modified)."
 (add-hook 'mail-mode-hook
            (lambda () (define-key mail-mode-map (kbd "<f6>") 'my-make-dear2)))
 (add-hook 'mail-mode 'flyspell-mode)
+
+;; For making LaTeX file from what-is blog posts.
+
+(fset 'whatistex
+   (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([C-kp-prior 19 98 101 103 105 110 123 100 111 99 117 13 home end 13 92 109 97 107 101 116 105 116 108 101 home down deletechar M-up M-up right 116 105 116 108 101 deletechar deletechar deletechar deletechar deletechar deletechar deletechar end 13 40 105 110 115 101 114 116 45 102 105 108 101 45 99 111 110 116 101 110 116 115 34 126 47 103 105 116 104 117 98 47 119 104 97 116 45 105 115 47 105 110 102 111 46 116 101 120 34 41 13 19 100 97 116 101 13 right 134217848 105 110 115 101 114 116 32 108 111 110 103 32 100 97 13 24 19] 0 "%d")) arg)))
+(put 'whatistex 'kmacro t)
+;; (defun myinsertinfo ()
+;;   (interactive)
+;;   (insert-file-contents "~/github/what-is/info.tex"))
 
 ;; (add-hook 'mail-mode-hook
 ;; 	  '(lambda()
@@ -1945,9 +1971,13 @@ With argument ARG, do this that many times."
 ;; Never used this.
 ;; (require 'iy-go-to-char)
 ;; (global-set-key (kbd "M-m") 'iy-go-to-char)
-(global-set-key (kbd "M-m") `make)
+;; Removed [2020-03-08 Sun 20:06] since not used.  Try original M-m.
+;; (global-set-key (kbd "M-m") `make)
 
 ;; ----------------------------------------------
+;; From \cite[p.~217]{pete15}:
+(global-set-key [remap dabbrev-expand] 'hippie-expand)
+
 ;; Hippie expand.
 (setq hippie-expand-try-functions-list
       '(try-expand-dabbrev
@@ -2642,9 +2672,11 @@ the character typed."
 
 ;; --------------------------------------------------------
 ;; MATLAB mode (http://www.emacswiki.org/emacs/MatlabMode)
+;; [2020-01-05 Sun 15:34] Try Elpa one again in future:
+;; help command is affected currently.
 
 (use-package matlab-load
-;;  :load-path "~/Dropbox/elisp/matlab-emacs"
+;  :load-path "~/Dropbox/elisp/matlab-emacs"
   :mode ("\\.m\\'" . matlab-mode)
   ; Prev line replaces: (add-to-list 'auto-mode-alist '("\\.m$" . matlab-mode))
   :init (autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
@@ -2862,23 +2894,47 @@ the character typed."
 (setq bibtex-text-indentation 0) ; No indentation for content.
 
 ;; From comment at https://nickhigham.wordpress.com/2016/01/06/managing-bibtex-files-with-emacs/
+;; Modifications by M. Fasi.
 (defun bibtex-generate-autokey ()
   (let* ((bibtex-autokey-names nil)
-  (bibtex-autokey-year-length 2)
-  (bibtex-autokey-name-separator "\0")
-  (names (split-string (bibtex-autokey-get-names) "\0"))
-  (year (bibtex-autokey-get-year))
-  (name-char (cond ((= (length names) 1) 4) ((= (length names) 2) 2) (t 1)))
-  (existing-keys (bibtex-parse-keys)) key)
-  (setq names (mapconcat (lambda (x)
-  (substring x 0 name-char))
-  names ""))
-  (setq key (format "%s%s" names year))
-  (let ((ret key))
-  (loop for c from ?a to ?z
-  while (assoc ret existing-keys)
-  do (setq ret (format "%s%c" key c)))
-  ret)))
+         (bibtex-autokey-year-length 2)
+         (bibtex-autokey-name-separator "\0")
+         (names (split-string (bibtex-autokey-get-names) "\0"))
+         (year (bibtex-autokey-get-year))
+         (name-char
+          (cond ((= (length names) 1)(min 4 (length (car names)))) 
+          ;; Handle surnames with three or fewer characters.
+                ((= (length names) 2) 2)
+                (t 1)))
+         (existing-keys (bibtex-parse-keys)) key)
+    (setq names (mapconcat (lambda (x)(substring x 0 name-char))
+                           names ""))
+    (setq names (substring names 0 (min (length names) 4)))
+    ;; Use only first four initials for papers with five or more authors.
+    (setq key (format "%s%s" names year))
+    (let ((ret key))
+      (loop for c from ?a to ?z
+            while (assoc ret existing-keys)
+            do (setq ret (format "%s%c" key c)))
+      ret)))
+
+;; (defun bibtex-generate-autokey ()
+;;   (let* ((bibtex-autokey-names nil)
+;;   (bibtex-autokey-year-length 2)
+;;   (bibtex-autokey-name-separator "\0")
+;;   (names (split-string (bibtex-autokey-get-names) "\0"))
+;;   (year (bibtex-autokey-get-year))
+;;   (name-char (cond ((= (length names) 1) 4) ((= (length names) 2) 2) (t 1)))
+;;   (existing-keys (bibtex-parse-keys)) key)
+;;   (setq names (mapconcat (lambda (x)
+;;   (substring x 0 name-char))
+;;   names ""))
+;;   (setq key (format "%s%s" names year))
+;;   (let ((ret key))
+;;   (loop for c from ?a to ?z
+;;   while (assoc ret existing-keys)
+;;   do (setq ret (format "%s%c" key c)))
+;;   ret)))
 
 ;; This is for inserting text of citation within a tex file.
 ;; Use in TeX mode and others (with different keys).
@@ -3272,6 +3328,42 @@ the character typed."
 ))
 
 ;;------------------------------------------------------------
+;; https://with-emacs.com/posts/tips/quit-current-context/
+(defun keyboard-quit-context+ ()
+  "Quit current context.
+
+This function is a combination of `keyboard-quit' and
+`keyboard-escape-quit' with some parts omitted and some custom
+behavior added."
+  (interactive)
+  (cond ((region-active-p)
+         ;; Avoid adding the region to the window selection.
+         (setq saved-region-selection nil)
+         (let (select-active-regions)
+           (deactivate-mark)))
+        ((eq last-command 'mode-exited) nil)
+        (current-prefix-arg
+         nil)
+        (defining-kbd-macro
+          (message
+           (substitute-command-keys
+            "Quit is ignored during macro defintion, use \\[kmacro-end-macro] if you want to stop macro definition"))
+          (cancel-kbd-macro-events))
+        ((active-minibuffer-window)
+         (when (get-buffer-window "*Completions*")
+           ;; hide completions first so point stays in active window when
+           ;; outside the minibuffer
+           (minibuffer-hide-completions))
+         (abort-recursive-edit))
+        (t
+         (when completion-in-region-mode
+           (completion-in-region-mode -1))
+         (let ((debug-on-quit nil))
+           (signal 'quit nil)))))
+
+(global-set-key [remap keyboard-quit] #'keyboard-quit-context+)
+
+;;------------------------------------------------------------
 ;; Question about how reliably this works.
 ;; http://www.emacswiki.org/emacs/TN#toc8
 (require 'tex-buf)
@@ -3592,7 +3684,8 @@ return `nil'."
 ; Make next keypress global, since I can't make C-M-... keypresses
 ; local in ORG mode (same problem with 'my-insert-TODO).
 (global-set-key (kbd "C-M-u") 'my-top-level)
-(global-set-key [S-f11] 'org2blog/wp-post-subtree)
+; (global-set-key [S-f11] 'org2blog/wp-post-subtree)
+(global-set-key [S-f11] 'org2blog-subtree-post-save)
 
 ;; This doesn't work when already at top level.
 ;; (defun my-wp-post-subtree ()
@@ -3815,6 +3908,12 @@ table, obtained by prompting the user."
 (setq org-cycle-separator-lines 0)
 ;; Avoid inadvertent text edit in invisible area.
 (setq org-catch-invisible-edits 'show-and-error)
+
+;; Try this. Cursor must be at beginning of headline.  Hit "?" for help.
+(setq org-use-speed-commands t)
+
+;; https://orgmode.org/manual/Export-Settings.html
+(setq org-export-allow-bind-keywords t)
 
 ;;; * Local Variables
 ;; Local Variables:
