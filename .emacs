@@ -20,7 +20,7 @@
 (setq default-input-method 'TeX)     ; For C-\.
 
 ;; For packages I've downloaded.
-(add-to-list 'load-path "~/Dropbox/elisp")
+;; (add-to-list 'load-path "~/Dropbox/elisp")
 
 ;; (if (version< emacs-version "25.0")
 ;;      ;; Now included in Emacs 25.
@@ -29,12 +29,17 @@
 ;;       )
 ;; )
 
+;; Removed [2020-11-01 Sun 20:36] (Emacs 27.1).
 ;; Next line necessary after 10-12-17 package update.  let-alist was
 ;; downloaded as a dependency but seems we need to load it.
-(require 'let-alist) ;; Cures startup problem 10-12-17?
+;; (require 'let-alist) ;; Cures startup problem 10-12-17?
 
-(require 'seq)
-(require 'cl)  ;; Temporary: to get loop macro, needed just below.
+;; Removed [2020-11-01 Sun 20:36] (Emacs 27.1).
+;; (require 'seq)
+
+;; cl is needed, but incompatible with Emacs 27. ! [2020-10-30 Fri 20:56]:
+;; (require 'cl-lib)  ;; Temporary: to get loop macro, needed just below.
+;; (require 'cl)  ;; Temporary: to get loop macro, needed just below.
                ;; I think cl is automaticaly loaded by something else.
 
 ;;; * Package initialization
@@ -44,42 +49,51 @@
         ("orgmode" . "https://orgmode.org/elpa/")
         ("melpa" . "http://melpa.org/packages/")
         ("gnu" . "http://elpa.gnu.org/packages/");  Only for AucTeX.
-        ))
-(package-initialize)
+        )
+      )
+;; (setq package-quickstart t)
+(when (< emacs-major-version 27)
+  (package-initialize))
 
-;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
-;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
-(defvar required-packages
-  '(ace-jump-buffer ace-jump-mode ace-jump-zap ace-link ace-window anzu auctex
-    auctex-latexmk bind-key
-    browse-kill-ring bug-hunter clippy counsel dash define-word deft diminish
-    dired-quick-sort edit-server elfeed elfeed-goodies expand-region
-    fireplace fix-word
-    git-timemachine helm helm-bibtex hydra ibuffer-vc imenu-anywhere ivy
-    ivy-bibtex latex-extra macrostep magit markdown-mode
-    matlab-mode orgalist org2blog
-    outshine ox-pandoc ripgrep
-    s shrink-whitespace shell-pop smex swiper switch-window
-    use-package wc-mode wgrep which-key wrap-region yasnippet)
-  "A list of packages to ensure are installed at launch.")
+;; Install automatically if not already present.
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
+
+;; ;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
+;; ;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
+;; (defvar required-packages
+;;   '(ace-jump-buffer ace-jump-mode ace-jump-zap ace-link ace-window anzu auctex
+;;     auctex-latexmk bind-key
+;;     browse-kill-ring bufler
+;;     bug-hunter clippy counsel dash define-word deft diminish
+;;     dired-quick-sort dumb-jump edit-server elfeed elfeed-goodies expand-region
+;;     fireplace fix-word
+;;     git-timemachine helm helm-bibtex hydra ibuffer-vc imenu-anywhere ivy
+;;     ivy-bibtex latex-extra macrostep magit markdown-mode
+;;     matlab-mode orgalist org2blog
+;;     outshine ox-pandoc ripgrep
+;;     s shrink-whitespace shell-pop smex swiper switch-window
+;;     use-package wc-mode wgrep which-key wrap-region yasnippet)
+;;   "A list of packages to ensure are installed at launch.")
 
 (setq use-package-enable-imenu-support t)
 (setq use-package-verbose t)  ;; Show package load times.
 
-(defun required-packages-installed-p ()
-  (loop for p in required-packages
-        when (not (package-installed-p p)) do (return nil)
-        finally (return t)))
+;; (defun required-packages-installed-p ()
+;; ;;  (loop for p in required-packages
+;;   (cl-loop for p in required-packages
+;;         when (not (package-installed-p p)) do (return nil)
+;;         finally (return t)))
 
-(unless (required-packages-installed-p)
-  ;; check for new packages (package versions)
-  (message "%s" "Emacs Required is now refreshing its package database...")
-  (package-refresh-contents)
-  (message "%s" " done.")
-  ;; install the missing packages
-  (dolist (p required-packages)
-    (when (not (package-installed-p p))
-      (package-install p))))
+;; (unless (required-packages-installed-p)
+;;   ;; check for new packages (package versions)
+;;   (message "%s" "Emacs Required is now refreshing its package database...")
+;;   (package-refresh-contents)
+;;   (message "%s" " done.")
+;;   ;; install the missing packages
+;;   (dolist (p required-packages)
+;;     (when (not (package-installed-p p))
+;;       (package-install p))))
 
 ;; Recommended way to load use-package.
 ; (add-to-list 'load-path "~/Dropbox/elisp/use-package-master")
@@ -258,7 +272,7 @@
 )
 ; ----------------------------------------------------------------------
 ;; For latest ORG mode downloaded by me.
-;; But now I use ELpa.
+;; But now I use Elpa.
 ; (add-to-list 'load-path "~/Dropbox/elisp/org/lisp")
 ;; Next line seems needed to make org functions available outside org,
 ;; before org has been invoked (C-c d above).
@@ -305,7 +319,29 @@
 ;; )
 
 ;; http://pragmaticemacs.com/emacs/instant-scratch-buffer-for-current-mode/
-(require 'scratch)
+; (require 'scratch)
+
+;; http://pragmaticemacs.com/emacs/instant-scratch-buffer-for-current-mode/
+;; (require 'scratch)
+
+;; https://protesilaos.com/dotemacs
+(use-package scratch
+  :ensure
+  :config
+  (defun prot/scratch-buffer-setup ()
+    "Add contents to `scratch' buffer and name it accordingly."
+    (let* ((mode (format "%s" major-mode))
+           (string (concat "Scratch buffer for: " mode "\n\n")))
+      (when scratch-buffer
+        (save-excursion
+          (insert string)
+          (goto-char (point-min))
+          (comment-region (point-at-bol) (point-at-eol)))
+        (forward-line 2))
+      (rename-buffer (concat "*Scratch for " mode "*") t)))
+  :hook (scratch-create-buffer-hook . prot/scratch-buffer-setup)
+  ;; bind ("C-c s" . scratch)
+  )
 
 ; ----------------- Neatly load some packages -----------------------
 ;; Dash is needed by ace-jump-buffer and wrap-region.
@@ -318,16 +354,20 @@
 (use-package fill-column-indicator)
 
 (setq diredp-hide-details-initially-flag nil) ;; Full details in listing.
-(use-package dired+)  ;; Cannot defer.
+(use-package dired+  ;; Cannot defer.
+     :load-path "~/dropbox/elisp/"
+)
 
 ; For describe-unbound-keys
-(use-package unbound)
-
-(use-package misc ;; Provided with Emacs.
-;;  (global-set-key [S-f4] 'copy-from-above-command)
-  :bind ("S-<f4>" . copy-from-above-command)
-          ;; Copy ARG characters - default to end of line.
+(use-package unbound
+   :load-path "~/dropbox/elisp/"
 )
+
+(global-set-key [S-f4] 'copy-from-above-command)
+;; (use-package misc ;; Provided with Emacs.
+;;   :bind ("S-<f4>" . copy-from-above-command)
+;;           ;; Copy ARG characters - default to end of line.
+;; )
 
 ;; http://endlessparentheses.com/faster-pop-to-mark-command.html
 ;; When popping the mark, continue popping until the cursor
@@ -351,28 +391,30 @@
 ;; ----------------------------------
 ;; recentf
 
-(use-package recentf
-  :init
-  ;; Must come before mode is loaded, else my recent file not loaded.
-;  (setq recentf-save-file "~/.recentf")
-  (setq recentf-save-file (concat (getenv "HOME") "/.recentf"))
-  :bind ("M-0" . recentf-open-files)
-  :config
-  ;; http://www.xsteve.at/prg/emacs/power-user-tips.html
-  (setq recentf-max-saved-items 500)
-  (setq recentf-max-menu-items 60)
-  (setq recentf-auto-cleanup 120) ; Must use custom?
-  (recentf-mode 1)
-)
+;; [2020-11-01 Sun 20:22] This is now built into Emacs.
+;; [2020-08-07 Fri 11:32] Problems with C-0 on startup.
+;; Has going back to original code really solved it?
+;; (use-package recentf
+;;   :init
+;;   ;; Must come before mode is loaded, else my recent file not loaded.
+;;   ;; (setq recentf-save-file "~/.recentf")
+;;   (setq recentf-save-file (concat (getenv "HOME") "/.recentf"))
+;;   :bind ("M-0" . recentf-open-files)
+;;   :config
+;;   ;; http://www.xsteve.at/prg/emacs/power-user-tips.html
+;;   (setq recentf-max-saved-items 500)
+;;   (setq recentf-max-menu-items 60)
+;;   (setq recentf-auto-cleanup 120) ; Must use custom?
+;;   (recentf-mode 1)
+;; )
 
-;; ;; http://www.xsteve.at/prg/emacs/power-user-tips.html
-;; ;; Next line must come before mode is turned on.
-;; (setq recentf-save-file "~/.recentf")
-;; (recentf-mode 1)
-;; (setq recentf-max-saved-items 500)
-;; (setq recentf-max-menu-items 60)
-;; (setq recentf-auto-cleanup 120) ; Must use custom?
-
+;; http://www.xsteve.at/prg/emacs/power-user-tips.html
+;; Next line must come before mode is turned on.
+(setq recentf-save-file "~/.recentf")
+(recentf-mode 1)
+(setq recentf-max-saved-items 500)
+(setq recentf-max-menu-items 60)
+(setq recentf-auto-cleanup 120) ; Must use custom?
 (global-set-key (kbd "M-0") 'recentf-open-files)
 
 (defun xsteve-ido-choose-from-recentf ()
@@ -421,7 +463,7 @@
     ))
 
 ;; https://irreal.org/blog/?p=8614
-;; C-u C-x u to undo changes in region. 
+;; C-u C-x u to undo changes in region.
 (setq undo-tree-enable-undo-in-region t)
 
 ; (require 'undo-tree)
@@ -663,6 +705,7 @@ kill it (unless it's modified)."
 
 ;; org2blog
 (use-package org2blog)
+;; (require 'org2blog)
 (add-hook 'org-mode-hook #'org2blog-maybe-start)
 
 (defun o2l()
@@ -678,7 +721,7 @@ kill it (unless it's modified)."
 ;; Load construct that has Wordpress username and password.
 (load-file "~/Dropbox/.emacs-wordpress")
 (setq org2blog/wp-show-post-in-browser 'show)
-(setq org2blog/wp-use-sourcecode-shortcode t)
+(setq org2blog/wp-use-sourcecode-shortcode nil)
 (setq org2blog/wp-image-upload t)
 
 ;; Next two lines cause <pre> tags to be converted to WP sourcecode blocks.
@@ -724,6 +767,9 @@ kill it (unless it's modified)."
 ;; Load my keyboard macros.
 ;; (load-file "~/Dropbox/mymacros.macs")
 ;; (global-set-key (kbd "C-c n") 'norm2); Fails due to assumed search term.
+
+(fset 'myequation
+   (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([kp-home 92 98 101 103 105 110 123 101 113 117 97 116 105 111 110 125 92 110 111 116 97 103 return return 92 101 110 100 123 101 113 117 97 116 105 111 110 125 kp-home kp-up] 0 "%d")) arg)))
 
 ;; Recorded again using regexp. For several norms on same line must
 ;; convert starting from end of line due to greedy .*!
@@ -771,9 +817,13 @@ kill it (unless it's modified)."
 (global-set-key (kbd "C-M-<return>") 'electric-indent-just-newline)
 
 ;;------------------------
-(add-to-list 'load-path "~/dropbox/elisp/git-gutter-master")
-(require 'git-gutter)
-(global-set-key [S-f12] 'git-gutter-mode)
+;; (add-to-list 'load-path "~/dropbox/elisp/git-gutter-master")
+;; (require 'git-gutter)
+;; (global-set-key [S-f12] 'git-gutter-mode)
+(use-package git-gutter
+  :ensure t
+  :bind (("S-<f12>" . git-gutter-mode)
+))
 
 ;;------------------------
 ;; Case changes
@@ -784,15 +834,20 @@ kill it (unless it's modified)."
 (global-set-key [M-f8]   'title-case-string-region-or-line)
 ;; (global-set-key [S-M-f8] 'upcase-word)
 
-;; https://github.com/mrkkrp/fix-word
-;; http://emacs.stackexchange.com/questions/13970/fixing-double-capitals-as-i-type/13975#13975
-;; These work backwards when point between words.
-(use-package fix-word
-;;  :load-path "~/dropbox/elisp/fix-word"
-  :bind (("S-M-<f8>" . fix-word-upcase)
-         ("C-<f8>"   . fix-word-downcase)
-         ("S-<f8>"   . fix-word-capitalize)
-))
+;; ;; https://github.com/mrkkrp/fix-word
+;; ;; http://emacs.stackexchange.com/questions/13970/fixing-double-capitals-as-i-type/13975#13975
+;; ;; These work backwards when point between words.
+;; (use-package fix-word
+;; ;;  :load-path "~/dropbox/elisp/fix-word"
+;;   :bind (("S-M-<f8>" . fix-word-upcase)
+;;          ("C-<f8>"   . fix-word-downcase)
+;;          ("S-<f8>"   . fix-word-capitalize)
+;;          ))
+
+;; https://karthinks.com/software/batteries-included-with-emacs/#fnref:4
+(global-set-key (kbd "S-M-<f8>") 'upcase-dwim)
+(global-set-key (kbd "C-<f8>") 'downcase-dwim)
+(global-set-key (kbd "s-<f8>") 'capitalize-dwim)
 
 (use-package fireplace
 ;;  :load-path "~/dropbox/elisp/fireplace"
@@ -1062,7 +1117,8 @@ Emacs buffers are those whose name starts with *."
    ("t"
     (lambda () (interactive) (switch-to-buffer "*text*"))
     "text*")
-   ("z" scratch "scratch-make")
+;; ("z" scratch "scratch-make")
+   ("z" scratch)
 )
 
 (defhydra hydra-dired (:color blue)
@@ -1232,6 +1288,22 @@ environments around point)"
 ;; 	     ))
 
 ;; ----------------------------------------------------------
+;; https://cestlaz.github.io/posts/using-emacs-33-projectile-jump/
+(use-package dumb-jump
+:bind (("M-g o" . dumb-jump-go-other-window)
+("M-g j" . dumb-jump-go)
+("M-g x" . dumb-jump-go-prefer-external)
+("M-g z" . dumb-jump-go-prefer-external-other-window))
+:config
+;; (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
+:init
+(dumb-jump-mode)
+(define-key dumb-jump-mode-map (kbd "C-M-p") nil)
+(define-key dumb-jump-mode-map (kbd "C-M-g") nil)
+(define-key dumb-jump-mode-map (kbd "C-M-q") nil)
+)
+;; ----------------------------------------------------------
+
 ;; http://irreal.org/blog/?p=5591
 (use-package ace-link
   :init (ace-link-setup-default)
@@ -1257,10 +1329,32 @@ environments around point)"
 ;; (global-set-key (kbd "M-z") 'zap-up-to-char)
 ;; (global-set-key (kbd "M-Z") 'zap-to-char)  ;; default is M-z
 
-;; (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-buffer")
-(use-package ace-jump-buffer)
-(global-set-key (kbd "M-b") 'ace-jump-buffer)
-(global-set-key (kbd "M-B") 'ace-jump-same-mode-buffers)
+;; ;; (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-buffer")
+;; (use-package ace-jump-buffer)
+;; (global-set-key (kbd "M-b") 'ace-jump-buffer)
+;; (global-set-key (kbd "M-B") 'ace-jump-same-mode-buffers)
+
+;; --------------------------------------
+;; https://protesilaos.com/dotemacs
+(defun prot/buffers-major-mode (&optional arg)
+    "Select buffers that match the current buffer's major mode.
+With \\[universal-argument] produce an `ibuffer' filtered
+accordingly.  Else use standard completion."
+    (interactive "P")
+    (let* ((major major-mode)
+           (prompt "Buffers for ")
+           (mode-string (format "%s" major))
+           (mode-string-pretty (propertize mode-string 'face 'success)))
+      (if arg
+          (ibuffer t (concat "*" prompt mode-string "*")
+                   (list (cons 'used-mode major)))
+        (switch-to-buffer
+         (read-buffer
+          (concat prompt mode-string-pretty ": ") nil t
+          (lambda (pair) ; pair is (name-string . buffer-object)
+            (with-current-buffer (cdr pair) (derived-mode-p major))))))))
+(global-set-key (kbd "M-b") 'prot/buffers-major-mode)
+;; --------------------------------------
 
 ;; http://whattheemacsd.com/init.el-03.html
 ;; Save point position between sessions
@@ -1281,8 +1375,8 @@ environments around point)"
 ;; From http://lumiere.ens.fr/~guerry/u/emacs.el
 ;; (add-hook 'emacs-lisp-mode-hook 'turn-on-orgstruct++)
 (add-hook 'emacs-lisp-mode-hook 'outshine-mode)
+(add-hook 'mail-mode-hook 'outshine-mode)
 ;; (add-hook 'mail-mode-hook 'turn-on-orgstruct++)
-;; (add-hook 'mail-mode-hook 'outshine-mode)
 
 ;; http://pragmaticemacs.com/emacs/use-org-mode-tables-and-structures-in-emails-and-elsewhere/
 ;; (add-hook 'mail-mode-hook 'turn-on-orgtbl)
@@ -1447,24 +1541,10 @@ Works in Microsoft Windows, Mac OS X, Linux."
 ;; (use-package frame-fns
 ;;   :load-path "~/dropbox/elisp/frame-fns.el"
 ;; )
-(use-package frame-cmds
-  :load-path "~/dropbox/elisp/frame-cmds.el"
-)
-
-(add-to-list 'default-frame-alist '(background-color . "black"))
-(add-to-list 'default-frame-alist '(foreground-color . "white"))
-;; Are last two lines needed - seemed to have no effect.
-;; Black b/g was set by line -4 of emacs-custom_windows.
-(set-foreground-color "white")
-(set-background-color "black")
-(set-face-background 'region "gray") ; Set region background color
-(set-cursor-color "yellow")
-
-;; (add-to-list 'custom-theme-load-path "~/Dropbox/elisp/emacs-color-theme-solarized-master")
-;; (load-theme 'solarized-dark t)
-
-(setq cursor-type 'bar)
-(show-paren-mode 1)
+;; Commented out [2020-10-30 Fri 20:53]:
+;; (use-package frame-cmds
+;;   :load-path "~/dropbox/elisp/frame-cmds.el"
+;; )
 
 ;; Initial frame size.
 ;; Seems this must come after the above, else window is shorter!
@@ -1517,6 +1597,29 @@ Works in Microsoft Windows, Mac OS X, Linux."
       '((top . 10) (left . 1010)
         (width . 81) (height . 48)
         )))
+
+;; https://www.emacswiki.org/emacs/FrameParameters
+(add-to-list 'default-frame-alist '(foreground-color . "white"))
+(add-to-list 'default-frame-alist '(background-color . "black"))
+(add-to-list 'default-frame-alist '(cursor-color . "yellow"))
+;; Are last two lines needed - seemed to have no effect.
+;; Black b/g was set by line -4 of emacs-custom_windows.
+(set-foreground-color "white")
+(set-background-color "black")
+;; (set-face-background 'region "gray") ; Set region background color
+;; seashell4  at http://www.raebear.net/computers/emacs-colors/
+(set-face-background 'region "#8b8682")
+(set-cursor-color "yellow")
+
+(if (system-is-windows)
+  (set-frame-font "Consolas-12:bold")
+  (add-to-list 'default-frame-alist '(font . "Consolas-12:bold" )))
+
+;; (add-to-list 'custom-theme-load-path "~/Dropbox/elisp/emacs-color-theme-solarized-master")
+;; (load-theme 'solarized-dark t)
+
+(setq cursor-type 'bar)
+(show-paren-mode 1)
 
 ;; ----- Enable Line and Column Numbering
 ;; Show line-number in the mode line
@@ -1583,6 +1686,33 @@ Works in Microsoft Windows, Mac OS X, Linux."
       (message "Window is now dedicated.")
     (message "Window is no longer dedicated.")))
 (global-set-key [M-f2] 'toggle-sticky-buffer-window)
+
+;; -----------------------------------------------------------
+;; https://protesilaos.com/codelog/2020-08-03-emacs-custom-functions-galore/
+;; `prot/window-single-toggle' is based on `windower' by Pierre
+;; Neidhardt (ambrevar on GitLab)
+;; This is a dummy package but doesn't work with auto updating.
+;; (use-package emacs
+;;   :config
+  (defvar prot/window-configuration nil
+    "Current window configuration.
+     Intended for use by `prot/window-monocle'.")
+
+  (define-minor-mode prot/window-single-toggle
+    "Toggle between multiple windows and single window.
+     This is the equivalent of maximising a window.  Tiling window
+     managers such as DWM, BSPWM refer to this state as 'monocle'."
+    :lighter " [M]"
+    :global nil
+    (if (one-window-p)
+        (when prot/window-configuration
+          (set-window-configuration prot/window-configuration))
+      (setq prot/window-configuration (current-window-configuration))
+      (delete-other-windows)))
+
+  ;; :bind (("M-<f4>" . prot/window-single-toggle)))
+(global-set-key [M-f4] 'prot/window-single-toggle)
+;; -----------------------------------------------------------
 
 ;; Let minibuffer grow for ido
 ;; http://stackoverflow.com/questions/1775898/emacs-disable-line-truncation-in-minibuffer-only
@@ -2200,6 +2330,8 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (global-set-key (kbd "C-x ,") 'shrink-window)
 (global-set-key (kbd "C-x .") 'enlarge-window) ; was set-fill-prefix
 
+(global-set-key [C-f10]      'bufler)
+
 ;; Different from C-M-0 when more than 2 windows.
 (global-set-key [C-f2]
   '(lambda () (interactive) (other-window 1) (delete-other-windows)))
@@ -2214,7 +2346,7 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 
 (global-set-key [f10]        'query-replace)
 ;; (global-set-key [S-f10]      'ispell-buffer)
-(global-set-key [C-f10]      'flyspell-region)  ;; Default paragraph?
+;; (global-set-key [C-f10]      'flyspell-region)  ;; Default paragraph?
 (global-set-key [C-S-f10]    'flyspell-buffer)
 (global-set-key [S-f10]      'flyspell-auto-correct-word)
 ;; There is no "previous error" command!
@@ -2616,6 +2748,9 @@ the character typed."
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
+;; Undo change in Org 9.4 (from release notes)
+(add-hook 'org-mode-hook (lambda () (electric-indent-local-mode -1)))
+
 ;; Thunderbird email buffers.
 (add-to-list 'auto-mode-alist '("\\.eml$" . mail-mode))
 
@@ -2675,8 +2810,9 @@ the character typed."
 ;; [2020-01-05 Sun 15:34] Try Elpa one again in future:
 ;; help command is affected currently.
 
-(use-package matlab-load
-;  :load-path "~/Dropbox/elisp/matlab-emacs"
+;; (use-package matlab-load
+(use-package matlab-mode
+;;  :load-path "~/Dropbox/elisp/matlab-emacs"
   :mode ("\\.m\\'" . matlab-mode)
   ; Prev line replaces: (add-to-list 'auto-mode-alist '("\\.m$" . matlab-mode))
   :init (autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
@@ -2902,7 +3038,7 @@ the character typed."
          (names (split-string (bibtex-autokey-get-names) "\0"))
          (year (bibtex-autokey-get-year))
          (name-char
-          (cond ((= (length names) 1)(min 4 (length (car names)))) 
+          (cond ((= (length names) 1)(min 4 (length (car names))))
           ;; Handle surnames with three or fewer characters.
                 ((= (length names) 2) 2)
                 (t 1)))
@@ -2944,6 +3080,14 @@ the character typed."
                            (reftex-citation)))
 ;; Above reftex-cite-format string has same effect as "'locally" but
 ;; with title added and author list not abbreviated.
+
+;; [2020-11-07 Sat 19:21]
+;; This now needed for previous command to work.
+;; https://tex.stackexchange.com/questions/425883/emacs-auctex-reftex-and-biblatexs-multicite-commands
+;; Might not be needed! my-cite works everywhere except in whatis.org!  Why?
+;; [2020-11-08 Sun 16:37] Now it works!
+(setq LaTeX-reftex-ref-style-auto-activate nil)
+(setq LaTeX-reftex-cite-format-auto-activate nil)
 
 (defun my-cite-hook ()
 (local-set-key (kbd "C-c m") 'my-cite))
@@ -3120,6 +3264,14 @@ the character typed."
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex) ; with AUCTeX LaTeX mode
 (add-hook 'latex-mode-hook 'turn-on-reftex) ; with Emacs latex mode
 (setq reftex-plug-into-AUCTeX t)            ; Integrate RefTeX with AUCTeX.
+
+;; This redefinition is to make njh-open-cite-pdf work in comments, as be
+;; default RefTeX doesn't want to let reftex-view-crossref work in
+;; comments.  Hope it doesn't have any unwanted side effects.
+(defun reftex-in-comment ()
+  "Return non-nil if point is in a comment."
+   (interactive)
+   nil)
 
 (add-hook 'text-mode-hook 'my-cite-hook)  ;; And in org mode, below.
 (add-hook 'matlab-mode-hook 'my-cite-hook)
@@ -3591,6 +3743,9 @@ return `nil'."
 ("\\paragraph{%s}" . "\\paragraph*{%s}")
 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
+;; https://emacs.stackexchange.com/questions/12878/how-to-change-style-of-hyperlinks-within-pdf-published-from-org-mode-document/12879
+(add-to-list 'org-latex-default-packages-alist "\\PassOptionsToPackage{hyphens}{url}")
+
 ;; https://blog.karssen.org/2013/08/22/using-bibtex-from-org-mode/
 ;; Use latexmk for PDF export
 (setq org-latex-pdf-process (list "latexmk -pdf %f"))
@@ -3613,7 +3768,10 @@ return `nil'."
 ;; To get ido completion (http://patchwork.newartisans.com/patch/84):
 (setq org-completion-use-ido t)
 (setq org-completion-use-iswitchb nil)
-(setq org-return-follows-link t)
+
+;; This stops hitting return after a URL opening browser.
+;; (setq org-return-follows-link t)
+(setq org-return-follows-link nil)
 
 (setq org-src-fontify-natively t)   ;; http://irreal.org/blog/?p=671
 
@@ -3644,7 +3802,15 @@ return `nil'."
 ;;           (lambda () (interactive) (save-buffer) (org-latex-export-to-pdf)))
            (lambda () (interactive) (save-buffer)
                       (org-open-file (org-latex-export-to-pdf))))
-))
+           ))
+
+;; Next assignment is the default minus "fdb_latexmk". Reason is that in Emacs 27.1
+;; I'm getting errors
+;; "Processing LaTeX file whatis.tex...
+;; mapc: Removing old name: Permission denied, d:/Dropbox (Personal)/org/whatis.fdb_latexmk"
+(setq org-latex-logfiles-extensions
+  '("aux" "bcf" "blg" "fls" "figlist" "idx" "log" "nav" "out"
+    "ptc" "run.xml" "snm" "toc" "vrb" "xdv")) 
 
 ;; Link abbrevations.
 (setq org-link-abbrev-alist
@@ -3837,10 +4003,10 @@ table, obtained by prompting the user."
 ;; http://blog.binchen.org/posts/how-to-take-screen-shot-for-business-people-efficiently-in-emacs.html
 (setq org-odt-preferred-output-format "doc")
 
-;; This stops hitting return after a URL opening browser.
-(setq org-return-follows-link nil)
-
-(load-file "~/Dropbox/.emacs-mail-setup")
+;; In Emacs 27.1:
+;; Error (use-package): Failed to install smtpmail: Package ‘smtpmail-’ is unavailable
+;; so commented out.
+;; (load-file "~/Dropbox/.emacs-mail-setup")
 
 ;; http://www.howardism.org/Technical/Emacs/orgmode-wordprocessor.html
 (setq org-hide-emphasis-markers t)
@@ -3914,6 +4080,19 @@ table, obtained by prompting the user."
 
 ;; https://orgmode.org/manual/Export-Settings.html
 (setq org-export-allow-bind-keywords t)
+
+;; So that C-c = calls imenu (set above).
+;; https://superuser.com/questions/828713/how-to-override-a-keybinding-in-emacs-org-mode
+(define-key org-mode-map (kbd "C-c =") nil)
+(setq org-imenu-depth 7)
+
+;; For stripe-table-mode
+(use-package stripe-buffer)
+
+;; New to Emacs 27 and mentioned in peta20.
+;; But its keymap is overwitten by boomkark+, wihch I don't load!
+;;; C-x p: Is keymap set to project?
+;; (use-package project)
 
 ;;; * Local Variables
 ;; Local Variables:

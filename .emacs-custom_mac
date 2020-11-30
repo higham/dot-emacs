@@ -13,18 +13,15 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(LaTeX-clean-intermediate-suffixes
-   (quote
-    ("\\.blg" "\\.brf" "\\.fot" "\\.glo" "\\.gls" "\\.ilg" "\\.lof" "\\.log" "\\.lot" "\\.nav" "\\.out" "\\.snm" "\\.toc" "\\.url" "\\.synctex\\.gz")))
+   '("\\.blg" "\\.brf" "\\.fot" "\\.glo" "\\.gls" "\\.ilg" "\\.lof" "\\.log" "\\.lot" "\\.nav" "\\.out" "\\.snm" "\\.toc" "\\.url" "\\.synctex\\.gz"))
  '(LaTeX-command "latex -synctex=1")
  '(anzu-deactivate-region t)
  '(anzu-mode-lighter "")
  '(anzu-replace-threshold 50)
  '(anzu-replace-to-string-separator " => ")
  '(anzu-search-threshold 1000)
- '(matlab-functions-have-end nil)
  '(bibtex-BibTeX-entry-alist
-   (quote
-    (("article" "Article in Journal"
+   '(("article" "Article in Journal"
       (("author")
        ("title" "Title of the article (BibTeX converts it to lowercase)"))
       (("journal"))
@@ -172,14 +169,31 @@
        ("howpublished" "The way in which the work was published")
        ("month")
        ("year")
-       ("note"))))))
- '(curchg-default-cursor-type (quote box))
- '(curchg-overwrite/read-only-cursor-type (quote bar))
+       ("note")))))
+ '(bufler-reverse t)
+ '(curchg-default-cursor-type 'box)
+ '(curchg-overwrite/read-only-cursor-type 'bar)
  '(gud-gdb-command-name "gdb --annotate=1")
  '(large-file-warning-threshold nil)
+ '(matlab-functions-have-end nil)
+ '(org-latex-text-markup-alist
+   '((bold . "\\textbf{%s}")
+     (code . protectedtexttt)
+     (italic . "\\emph{%s}")
+     (strike-through . "\\sout{%s}")
+     (underline . "\\uline{%s}")
+     (verbatim . verb)))
  '(package-selected-packages
-   (quote
-    (elfeed-org elfeed-goodies elfeed wttrin try swiper smex magit loccur helm-bibtex goto-chg char-menu cdlatex browse-kill-ring)))
+   '(elfeed-org elfeed-goodies elfeed wttrin try swiper smex magit loccur helm-bibtex goto-chg char-menu cdlatex browse-kill-ring))
+ '(safe-local-variable-values
+   '((org-emphasis-alist
+      ("*" bold)
+      ("/" italic)
+      ("_" underline)
+      ("=" org-verbatim verbatim)
+      ("~" org-code verbatim)
+      ("+"
+       (:strike-through nil)))))
  '(truncate-lines t))
  '(wc-modeline-format "WC[%tw/%tl/%tc]")
 (custom-set-faces
