@@ -2936,13 +2936,6 @@ the character typed."
 
 ;;; * LaTeX
 
-(use-package auctex-latexmk
-  :load-path "~/dropbox/elisp/bratex"
-  :config
-(require 'bratex)
-(add-hook 'LaTeX-mode-hook #'bratex-config)
-)
-
 ;; To fix problem with parsing error messages from Emacs 24.x onwards:
 ;; http://tex.stackexchange.com/questions/124246/uninformative-error-message-when-using-auctex
 (setq LaTeX-command-style '(("" "%(PDF)%(latex) -file-line-error %S%(PDFout)")))
@@ -3342,6 +3335,13 @@ the character typed."
 ;;     (auctex-latexmk-setup)
 ;;     (setq auctex-latexmk-inherit-TeX-PDF-mode t)
 ;;     ))
+
+(use-package bratex
+  :load-path "~/dropbox/elisp/bratex"
+  :config
+  ;; (require 'bratex)
+  (add-hook 'LaTeX-mode-hook #'bratex-config)
+)
 
 ;; This is slow to load!
 ;; Support for latexmk
