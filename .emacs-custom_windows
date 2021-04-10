@@ -6,7 +6,7 @@
 (add-to-list 'exec-path "c:\\program files\\git\\bin")
 (add-to-list 'exec-path "C:\\Program Files (x86)\\Pandoc")
 
-:; Necessary because of Emacs 24 bug.
+;; Necessary because of Emacs 24 bug.
 ;; (set-default-font "Consolas-12:bold"nil)
 ;; (set-frame-font "Consolas-12:bold"nil)
 
@@ -200,8 +200,9 @@
      (strike-through . "\\sout{%s}")
      (underline . "\\uline{%s}")
      (verbatim . verb)))
+ '(package-hidden-regexps '("\\`auctex\\'"))
  '(package-selected-packages
-   '(use-package-ensure-system-package matlab-load misc unbound dired+ fill-column-indicator git-gutter dumb-jump org deft edit-server latex-extra ace-popup-menu ox-pandoc auctex-latexmk auctex ripgrep wc-mode dired-quick-sort ht ace-link magit counsel gnupg try swiper ivy wttrin goto-chg char-menu helm-bibtex helm smex color-theme chess browse-kill-ring))
+   '(icomplete-vertical use-package-ensure-system-package matlab-load misc unbound dired+ fill-column-indicator git-gutter dumb-jump org deft edit-server latex-extra ace-popup-menu ox-pandoc auctex-latexmk ripgrep wc-mode dired-quick-sort ht ace-link magit counsel gnupg try swiper ivy wttrin goto-chg char-menu helm-bibtex helm smex color-theme chess browse-kill-ring))
  '(safe-local-variable-values
    '((orgstruct-heading-prefix-regexp . ";;; ")
      (TeX-command-extra-options . "-shell-escape --enable-write18 --synctex=1")

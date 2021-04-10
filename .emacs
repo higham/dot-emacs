@@ -1,6 +1,10 @@
 ; -*- coding: utf-8 orgstruct-heading-prefix-regexp: ";;; "; -*-
 
 ;;; * Initialization
+
+;; The default is 800 kilobytes.  Measured in bytes.
+(setq gc-cons-threshold (* 50 1000 1000))
+
 (setq inhibit-splash-screen t)       ; Don't want splash screen.
 (setq inhibit-startup-message t)     ; Don't want any startup message.
 (scroll-bar-mode 0 )                 ; Turn off scrollbars.
@@ -48,7 +52,7 @@
       '(
         ("orgmode" . "https://orgmode.org/elpa/")
         ("melpa" . "http://melpa.org/packages/")
-        ("gnu" . "http://elpa.gnu.org/packages/");  Only for AucTeX.
+;;        ("gnu" . "http://elpa.gnu.org/packages/");  Only for AucTeX.
         )
       )
 ;; (setq package-quickstart t)
@@ -58,6 +62,16 @@
 ;; Install automatically if not already present.
 (require 'use-package-ensure)
 (setq use-package-always-ensure t)
+
+(use-package auto-package-update
+  :custom
+  (auto-package-update-interval 7)  ; 2 is too frequent.
+  (auto-package-update-prompt-before-update t)
+;;  (auto-package-update-hide-results t)
+  :config
+  (auto-package-update-maybe)
+  ;;  (auto-package-update-at-time "09:00")
+  )
 
 ;; ;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
 ;; ;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
@@ -77,7 +91,6 @@
 ;;   "A list of packages to ensure are installed at launch.")
 
 (setq use-package-enable-imenu-support t)
-(setq use-package-verbose t)  ;; Show package load times.
 
 ;; (defun required-packages-installed-p ()
 ;; ;;  (loop for p in required-packages
@@ -111,7 +124,8 @@
   :config
   ;; (setq guide-key/highlight-command-regexp "rectangle")
   (which-key-mode)
-  (which-key-setup-minibuffer)
+  ;; (which-key-setup-minibuffer)
+  (which-key-setup-side-window-bottom)
 )
 
 ;; http://endlessparentheses.com/debug-your-emacs-init-file-with-the-bug-hunter.html
@@ -119,6 +133,18 @@
 (use-package bug-hunter
   ;; :load-path "~/dropbox/elisp/elisp-bug-hunter"
 )
+
+;; ------------------------------------------------------------
+;; https://github.com/daviwil/dotfiles/blob/master/Emacs.org#startup-performance
+;; Profile emacs startup
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "*** Emacs loaded in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
+;; ------------------------------------------------------------
 
 ;;; * System identification
 ;; Name went from all caps in <= 24.4 to upper/lower case in 24.5.
@@ -256,6 +282,7 @@
 
 ;----------------------------------------------------------------------
 (use-package anzu
+  :defer
   ;; :load-path "~/Dropbox/elisp/anzu"
   :config
   (global-anzu-mode 1)
@@ -295,17 +322,27 @@
 (setq mouse-wheel-progressive-speed nil)
 
 ;; ------------------------------------------------
+(use-package helpful
+  :init
+  (setq counsel-describe-function-function #'helpful-callable)
+  (setq counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . helpful-function)
+  ([remap describe-symbol] . helpful-symbol)
+  ([remap describe-variable] . helpful-variable)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-key] . helpful-key))
 
-(use-package smex
-  ;; :load-path "~/dropbox/elisp/smex-master"
-  :init (smex-initialize)
-  :bind (("M-x" . smex)
-         ("M-X" . smex-major-mode-commands)
-         ;; Next is the old M-x.
-         ("C-c C-c M-x" . execute-extended-command))
-  :config
-  (setq smex-save-file "~/dropbox/.smex-items")
-)
+;; (use-package smex
+;;   ;; :load-path "~/dropbox/elisp/smex-master"
+;;   :init (smex-initialize)
+;;   :bind (("M-x" . smex)
+;;          ("M-X" . smex-major-mode-commands)
+;;          ;; Next is the old M-x.
+;;          ("C-c C-c M-x" . execute-extended-command))
+;;   :config
+;;   (setq smex-save-file "~/dropbox/.smex-items")
+;; )
 
 (use-package shrink-whitespace
   ;; :load-path "~/dropbox/elisp/shrink-whitespace"
@@ -349,14 +386,18 @@
 (use-package dash) ;;                    :load-path "~/dropbox/elisp/dash")
 (use-package s ) ;;          :defer t    :load-path "~/Dropbox/elisp/s")
 
-(use-package git-timemachine) ;; :load-path  "~/Dropbox/elisp/git-timemachine")
+(use-package git-timemachine
+  :defer
+  )
+;; :load-path  "~/Dropbox/elisp/git-timemachine")
 
 (use-package fill-column-indicator)
 
-(setq diredp-hide-details-initially-flag nil) ;; Full details in listing.
-(use-package dired+  ;; Cannot defer.
-     :load-path "~/dropbox/elisp/"
-)
+;; Removed since slow to load and I don't use it.
+;; (setq diredp-hide-details-initially-flag nil) ;; Full details in listing.
+;; (use-package dired+  ;; Cannot defer.
+;;      :load-path "~/dropbox/elisp/"
+;; )
 
 ; For describe-unbound-keys
 (use-package unbound
@@ -391,6 +432,7 @@
 ;; ----------------------------------
 ;; recentf
 
+;; [2021-01-11 Mon 21:42] Odd that use-package doesn't work (confirmed).
 ;; [2020-11-01 Sun 20:22] This is now built into Emacs.
 ;; [2020-08-07 Fri 11:32] Problems with C-0 on startup.
 ;; Has going back to original code really solved it?
@@ -409,7 +451,7 @@
 ;; )
 
 ;; http://www.xsteve.at/prg/emacs/power-user-tips.html
-;; Next line must come before mode is turned on.
+;; Next line must come before mode is turned on
 (setq recentf-save-file "~/.recentf")
 (recentf-mode 1)
 (setq recentf-max-saved-items 500)
@@ -480,8 +522,11 @@
 
 ;; http://www.blogbyben.com/2013/08/a-tiny-eshell-add-on-jump-to-shell.html
 ;; (add-to-list 'load-path "~/dropbox/elisp/shell-pop")
-(use-package shell-pop)
-(global-set-key [S-f3] 'shell-pop) ;; Default is buffer's dir.
+(use-package shell-pop
+  :defer t
+  :bind ("S-<f3>" . shell-pop)
+)        
+;; (global-set-key [S-f3] 'shell-pop) ;; Default is buffer's dir.
 
 ;; Reload .emacs.
 (global-set-key (kbd "M-<f12>")
@@ -512,13 +557,14 @@
 ;; (add-to-list 'load-path "~/dropbox/elisp/s")
 ;; (add-to-list 'load-path "~/dropbox/elisp/parsebib")
 
-;; Next lime gives error on loading - why?
+;; Next line gives error on loading - why?
 ;; Works fine once loaded.
 ;; (helm-autoresize-mode t)
 ;; (setq helm-autoresize-max-height 80)
 
+;; See if other completion packages take over. [2021-04-10 Sat 17:37]
 ;; Consider redefining Smex keys.
-(global-set-key (kbd "M-x") 'helm-M-x)
+;; (global-set-key (kbd "M-x") 'helm-M-x)
 
 ;; -----------------------------------------------------------------
 ;; helm-bibtex
@@ -589,6 +635,8 @@
 ;; (define-key (current-global-map) "\C-c&" 'reftex-view-crossref)
 ; (define-key global-map "\C-c&" nil)
 
+;; -----------------------------------------------------------------
+
 (use-package yasnippet
 ;;  :load-path "~/dropbox/elisp/yasnippet"
 ;;  :init
@@ -599,7 +647,6 @@
 ;;      ))
 ;;  :defer t
 ;  :demand  ;; Found this needed for yas to be turned on when first needed.
-  :ensure t
   :diminish yas-minor-mode
 ; :commands (yas-expand yas-minor-mode)
   :config
@@ -659,11 +706,109 @@
 ;;   (add-hook 'emacs-lisp-mode-hook #'jcs-use-package))
 
 ;; ----------------------------------------------------
+(use-package orderless
+  :init (icomplete-mode) ; optional but recommended!
+  :custom (completion-styles '(orderless)))
+;; ----------------------------------------------------
+
+;; -----------------------------------------------------------------
+(use-package consult
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (("C-x M-:" . consult-complex-command)
+         ;; ("C-c h" . consult-history)
+         ("C-c m" . consult-mode-command)
+         ("C-x b" . consult-buffer)
+         ;; ("C-x 4 b" . consult-buffer-other-window)
+         ;; ("C-x 5 b" . consult-buffer-other-frame)
+         ;; ("C-x r x" . consult-register)
+         ;; ("C-x r b" . consult-bookmark)
+         ("M-g l"   . consult-goto-line)
+         ("M-g M-l" . consult-goto-line)
+         ;; ("M-g M-g" . consult-goto-line)
+         ("M-s a"   . consult-apropos)       
+         ("M-s M-a" . consult-apropos)       
+         ("M-s m"   . consult-imenu)       
+         ("M-s M-m" . consult-imenu)       
+         ("M-s o"   . consult-outline)       
+         ("M-s M-o" . consult-outline)       
+         ("M-s l"   . consult-line)          
+         ("M-s M-l" . consult-line)          
+         ("M-g m" . consult-mark)          ;; Choose marks in buffer.
+         ("M-g n" . consult-global-mark)   ;; Choose marks in all buffers.
+         ("M-s r" . consult-git-grep)      ;; or consult-grep, consult-ripgrep
+         ;; ("M-s f" . consult-find)          ;; or consult-locate, my-fdfind
+         ;; ("M-s i" . consult-project-imenu) ;; or consult-imenu
+         ("M-s e" . consult-error)
+         ("M-s m" . consult-multi-occur)
+         ;; ("M-y" . consult-yank-pop)
+         ("C-h a" . consult-apropos))
+  )
+
+
+;; Doesn't work for me - has no effect.
+;; https://github.com/minad/marginalia
+(use-package marginalia
+  :bind (:map minibuffer-local-map
+              ("S-C-a" . marginalia-cycle)
+         ;; When using the Embark package, you can bind `marginalia-cycle' as an Embark action!
+         ;; :map embark-general-map
+         ;;     ("A" . marginalia-cycle)
+        )
+  ;; :config
+  :init
+  (marginalia-mode))
+
+(use-package embark
+  :bind
+  ;; ("C-S-a" . embark-act)  ; pick some comfortable binding
+  ("C-#" . embark-act)          
+  :config
+    ;; From https://github.com/daviwil/dotfiles/blob/master/Emacs.org
+    ;; Show Embark actions via which-key
+  (setq embark-action-indicator
+        (lambda (map)
+          (which-key--show-keymap "Embark" map nil nil 'no-paging)
+          #'which-key--hide-popup-ignore-command)
+        embark-become-indicator embark-action-indicator)
+  )
+(add-hook 'org-mode-hook '(lambda ()
+          (local-set-key (kbd "C-#") ' embark-act)
+          ))
+
+;; ;; Consult users will also want the embark-consult package.
+;; (use-package embark-consult
+;;   :ensure t
+;;   :after (embark consult)
+;;   ;; if you want to have consult previews as you move around an
+;;   ;; auto-updating embark collect buffer
+;;   :hook
+;;   (embark-collect-mode . embark-consult-preview-minor-mode))
+
+;; ;; Cursor keys and C-v don't work in minibuffer!
+;; (use-package icomplete-vertical
+;;   :ensure t
+;;   :demand t
+;;   :custom
+;;   (completion-styles '(partial-completion substring))
+;;   (completion-category-overrides '((file (styles basic substring))))
+;;   (read-file-name-completion-ignore-case t)
+;;   (read-buffer-completion-ignore-case t)
+;;   (completion-ignore-case t)
+;;   :config
+;;   (icomplete-mode)
+;;   (icomplete-vertical-mode)
+;;   :bind (:map icomplete-minibuffer-map
+;;               ("<down>" . icomplete-forward-completions)
+;;               ("C-n" . icomplete-forward-completions)
+;;               ("<up>" . icomplete-backward-completions)
+;;               ("C-p" . icomplete-backward-completions)
+;;               ("C-v" . icomplete-vertical-toggle)))
+
+;; https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html
 ;; Ivy and Swiper
 ;; require 'ivy)
-
-(use-package swiper
-  :ensure try
+;; (use-package swiper
+(use-package ivy
   :config
 ;;  (progn
     (ivy-mode 1)
@@ -672,15 +817,31 @@
           ivy-count-format "%d/%d ")
     (global-set-key (kbd "C-M-s") 'isearch-forward) ;; Keep isearch option.
     (global-set-key (kbd "C-M-r") 'isearch-backward)
-    (global-set-key (kbd "C-S-s") 'swiper)
-    (global-set-key (kbd "C-s") 'swiper-isearch)
+    (global-set-key (kbd "C-s") 'swiper)
+    (global-set-key (kbd "C-S-s") 'swiper-isearch)
     (global-set-key (kbd "<f6>") 'ivy-resume)
-    (global-set-key (kbd "C-x C-b") 'ivy-switch-buffer)
     (global-set-key (kbd "C-9")   'ivy-switch-buffer)
     (global-set-key (kbd "C-S-f") 'counsel-find-file)
     (global-set-key (kbd "C-c g") 'counsel-git)
+    ;; (setq ivy-re-builders-alist '((t . orderless-ivy-re-builder)))
     )
 ;; )
+
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1)
+  :config
+  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
+
+;; https://melpa.org/#/embark-consult
+;; (with-eval-after-load 'consult
+;; (with-eval-after-load 'embark
+;;   (require 'embark-consult)))
+(use-package avy-embark-collect)
+(use-package embark-consult
+  :config
+  (add-hook 'embark-collect-mode-hook #'embark-consult-preview-minor-mode)
+)  
 
 ;; http://mbork.pl/2014-04-04_Fast_buffer_switching_and_friends
 (defun switch-bury-or-kill-buffer (&optional aggr)
@@ -704,9 +865,17 @@ kill it (unless it's modified)."
          ("M-g D" . define-word)))
 
 ;; org2blog
-(use-package org2blog)
+(use-package org2blog
+  :defer
+  :config
+  ;; Load construct that has Wordpress username and password.
+  (load-file "~/Dropbox/.emacs-wordpress")
+  (setq org2blog/wp-show-post-in-browser 'show)
+  (setq org2blog/wp-use-sourcecode-shortcode nil)
+  (setq org2blog/wp-image-upload t)
+  (add-hook 'org-mode-hook #'org2blog-maybe-start)
+)
 ;; (require 'org2blog)
-(add-hook 'org-mode-hook #'org2blog-maybe-start)
 
 (defun o2l()
   "Log into org2blog."
@@ -718,11 +887,6 @@ kill it (unless it's modified)."
 ;; (add-to-list 'load-path "~/dropbox/elisp/metaweblog-master")
 ;; (require 'org2blog-autoloads)
                                        ; (require 'xml-rpc)
-;; Load construct that has Wordpress username and password.
-(load-file "~/Dropbox/.emacs-wordpress")
-(setq org2blog/wp-show-post-in-browser 'show)
-(setq org2blog/wp-use-sourcecode-shortcode nil)
-(setq org2blog/wp-image-upload t)
 
 ;; Next two lines cause <pre> tags to be converted to WP sourcecode blocks.
 ;; (require 'htmlize)
@@ -744,6 +908,7 @@ kill it (unless it's modified)."
 (add-hook 'matlab-mode-hook
 	  '(lambda()
      	     (local-unset-key (kbd "M-j")) ; Prefer mine.
+     	     (local-unset-key (kbd "M-s")) ; Prefer mine.
 	     ))
 
 ;; Don't let the cursor go into minibuffer prompt
@@ -794,7 +959,11 @@ kill it (unless it's modified)."
 (put 'whatistex 'kmacro t)
 ;; (defun myinsertinfo ()
 ;;   (interactive)
-;;   (insert-file-contents "~/github/what-is/info.tex"))
+;;   (insert-file-contents "~/github/what-is/info.tex")
+
+(defun whatis()
+  (interactive)
+   (find-file "~/Dropbox/org/whatis.org"))
 
 ;; (add-hook 'mail-mode-hook
 ;; 	  '(lambda()
@@ -821,7 +990,6 @@ kill it (unless it's modified)."
 ;; (require 'git-gutter)
 ;; (global-set-key [S-f12] 'git-gutter-mode)
 (use-package git-gutter
-  :ensure t
   :bind (("S-<f12>" . git-gutter-mode)
 ))
 
@@ -991,7 +1159,6 @@ Emacs buffers are those whose name starts with *."
 (setq elfeed-db-directory "~/Dropbox/elfeeddb")
 
 (use-package elfeed
- :ensure t
  :bind (:map elfeed-search-mode-map
 	      ("q" . bjm/elfeed-save-db-and-bury)
 	      ("Q" . bjm/elfeed-save-db-and-bury)
@@ -1242,6 +1409,9 @@ environments around point)"
     "pariatur. Excepteur sint occaecat cupidatat non proident, sunt in "
     "culpa qui officia deserunt mollit anim id est laborum."))
 
+;; https://github.com/bbatsov/crux
+(use-package crux)
+
 ;;----------------------------------------------
 ;; Modified by NJH from
 ;; https://plus.google.com/113859563190964307534/posts/SK1vqiG9jv5
@@ -1297,6 +1467,7 @@ environments around point)"
 :config
 ;; (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
 :init
+(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 (dumb-jump-mode)
 (define-key dumb-jump-mode-map (kbd "C-M-p") nil)
 (define-key dumb-jump-mode-map (kbd "C-M-g") nil)
@@ -1311,13 +1482,13 @@ environments around point)"
 ;; Why does the define-key line fail on loading?
 )
 
-;; (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-mode-master")
-(use-package ace-jump-mode)
-(define-key global-map (kbd "C-x SPC") 'ace-jump-mode)
-;; Default C-c SPC clashes with ORG mode.
-(global-set-key (kbd "M-a") 'ace-jump-word-mode)
-(global-set-key (kbd "M-c") 'ace-jump-char-mode)
-(global-set-key (kbd "M-l") 'ace-jump-line-mode)
+;; ;; (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-mode-master")
+;; (use-package ace-jump-mode)
+;; (define-key global-map (kbd "C-x SPC") 'ace-jump-mode)
+;; ;; Default C-c SPC clashes with ORG mode.
+;; (global-set-key (kbd "M-a") 'ace-jump-word-mode)
+;; (global-set-key (kbd "M-c") 'ace-jump-char-mode)
+;; (global-set-key (kbd "M-l") 'ace-jump-line-mode)
 
 ;; (add-to-list 'load-path "~/Dropbox/elisp/ace-jump-zap-master")
 (use-package ace-jump-zap)
@@ -1354,6 +1525,26 @@ accordingly.  Else use standard completion."
           (lambda (pair) ; pair is (name-string . buffer-object)
             (with-current-buffer (cdr pair) (derived-mode-p major))))))))
 (global-set-key (kbd "M-b") 'prot/buffers-major-mode)
+
+(defun prot-ibuffer-buffers-vc-root (&optional arg)
+  "Select buffers that belong to the version controlled directory.
+With optional prefix ARG (\\[universal-argument]) produce an
+`ibuffer' filtered accordingly.  Else use standard completion."
+  (interactive "P")
+  (let* ((root (or (vc-root-dir)
+                   (locate-dominating-file "." ".git")))
+         (prompt "Buffers for VC"))
+    (if root
+        (if arg
+            (ibuffer t (format "*%s %s*" prompt root)
+                     (list (cons 'filename (expand-file-name root))))
+          (switch-to-buffer
+           (read-buffer
+            (format "%s %s:" prompt root) nil t
+            (lambda (pair) ; pair is (name-string . buffer-object)
+              (with-current-buffer (cdr pair) (string= (vc-root-dir) root))))))
+      (user-error "Not in a version-controlled directory"))))
+(global-set-key (kbd "M-B") 'prot-ibuffer-buffers-vc-root)
 ;; --------------------------------------
 
 ;; http://whattheemacsd.com/init.el-03.html
@@ -1519,7 +1710,6 @@ Works in Microsoft Windows, Mac OS X, Linux."
 ;;------------------------------------------------------------
 (when (system-is-windows)
 (use-package dired-quick-sort
-  :ensure t
   :config
     (setq ls-lisp-use-insert-directory-program t)      ;; use external ls
     (setq insert-directory-program "e:/cygwin/bin/ls") ;; ls program name
@@ -1527,9 +1717,8 @@ Works in Microsoft Windows, Mac OS X, Linux."
   ;;   (setq ls-lisp-use-insert-directory-program t)      ;; use external ls
   ;;   (setq insert-directory-program "ls")          ;; ls program name
   ;; )
-  (dired-quick-sort-setup)
-)
-)
+  (dired-quick-sort-setup)  ;; S for sorting hydra.
+))
 
 ;; -----------------------------------------
 ;; (add-to-list 'load-path "~/Dropbox/elisp/mhayashi1120-Emacs-wgrep-f701229")
@@ -1611,8 +1800,9 @@ Works in Microsoft Windows, Mac OS X, Linux."
 (set-face-background 'region "#8b8682")
 (set-cursor-color "yellow")
 
+;; https://emacs.stackexchange.com/questions/16313/new-frame-does-not-respect-default-font
 (if (system-is-windows)
-  (set-frame-font "Consolas-12:bold")
+  (set-frame-font "Consolas-12:bold" nil t)
   (add-to-list 'default-frame-alist '(font . "Consolas-12:bold" )))
 
 ;; (add-to-list 'custom-theme-load-path "~/Dropbox/elisp/emacs-color-theme-solarized-master")
@@ -1807,6 +1997,18 @@ This is useful when followed by an immediate kill."
 (global-set-key (kbd "M-g M-g") 'prelude-google)
 (global-set-key (kbd "M-g g")   'prelude-google)
 
+(defun duckduckgo ()
+  "Googles a region, if any, or prompts for a Google search string."
+  (interactive)
+  (browse-url
+   (concat
+    "https://duckduckgo.com/"
+    (if mark-active
+        (buffer-substring (region-beginning) (region-end))
+      (read-string "DuckDuckGo: ")))))
+(global-set-key (kbd "M-g M-k") 'duckduckgo)
+(global-set-key (kbd "M-g k")   'duckduckgo)
+
 (defun google-scholar ()
   "Googles a region, if any, or prompts for a Google search string."
   (interactive)
@@ -1820,8 +2022,8 @@ This is useful when followed by an immediate kill."
 (global-set-key (kbd "M-g M-s") 'google-scholar)
 (global-set-key (kbd "M-g s")   'google-scholar)
 
-(global-set-key (kbd "M-g M-l") 'goto-line)
-(global-set-key (kbd "M-g l")   'goto-line)
+;; (global-set-key (kbd "M-g M-l") 'goto-line)
+;; (global-set-key (kbd "M-g l")   'goto-line)
 
 ;; -----------------------------------------------------------------
 (defun xah-select-text-in-quote ()
@@ -1964,7 +2166,6 @@ point reaches the beginning or end of the buffer, stop there."
 
 ;; http://irreal.org/blog/?p=4926
 (use-package char-menu
-  :ensure t
   ;; bind ("H-s" . char-menu)
   :config (setq char-menu '("—" "‘’" "“”" "…" "«»" "–"
                             ("Typography" "•" "©" "†" "‡" "°" "·" "§" "№" "★")
@@ -2152,7 +2353,6 @@ With argument ARG, do this that many times."
 ;; restores window to less than full height.
 ;; weather from wttr.in
 (use-package wttrin
-  :ensure t
   :commands (wttrin)
   :init
   (setq wttrin-default-cities '("Manchester")))
@@ -2365,7 +2565,11 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 ;; Not sure why local-unset-key trick doesn't work.  This does the job:
 ;; http://stackoverflow.com/questions/16084022/emacs-flyspell-deactivate-c-key-binding
 (eval-after-load "flyspell"
-  '(define-key flyspell-mode-map (kbd "C-c $") nil)) ;; Prefer Org-mode's key.
+  ;; '(define-key flyspell-mode-map (kbd "C-c $") nil)) ;; Prefer Org-mode's key.
+  '(progn
+      (define-key flyspell-mode-map (kbd "C-c $") nil) ;; Prefer Org-mode's key.
+      (define-key flyspell-mode-map (kbd "C-,") nil) ;; Prefer Embark key.
+   ))
 
 ;; http://stackoverflow.com/questions/6860750/how-to-enable-flyspell-mode-in-emacs-for-all-files-and-all-major-modes
 ;; Turn flyspell on in all modes.
@@ -2472,7 +2676,6 @@ abort completely with `C-g'."
 
 ;;  C-u 0 M-p shows a description of the change you made at each point.
 (use-package goto-chg
-  :ensure t
   :bind (("M-," . goto-last-change)
          ("M-." . goto-last-change-reverse)))
 
@@ -2652,7 +2855,7 @@ If region is active, apply to active region instead."
 ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2006-07/msg00220.html
 (global-set-key (kbd "C-c i") (function overwrite-mode))
 
-(global-set-key [M-f11] 'quoted-insert) ; I use C-q for scrolling.
+;; (global-set-key [M-f11] 'quoted-insert) ; I use C-q for scrolling.
 
 ;; This handles cursor keys in cluster, but not numerical keypad.
 ;(global-set-key "\M-[1;5C"    'forward-to-word) ; Ctrl+right => forward word
@@ -2901,6 +3104,7 @@ the character typed."
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "-" nil (point-min) (point-max))
+   (replace-string "" "" nil (point-min) (point-max))
 ;; Next line deleted as it puts everything on one line when applied to
 ;; whole file!
 ;;    (replace-string "
@@ -2991,7 +3195,7 @@ the character typed."
   (interactive)
   (save-excursion
   (reftex-view-crossref) (switch-window)
-   (bibtex-completion-open-pdf-of-entry-at-point)(delete-window)))
+  (bibtex-completion-open-pdf-of-entry-at-point)(delete-window)))
 (defun njh-open-cite-note ()
   (interactive)
   (save-excursion
@@ -3005,13 +3209,24 @@ the character typed."
           (local-set-key (kbd "C-c p") 'njh-open-cite-pdf)
           (local-set-key (kbd "C-c n") 'njh-open-cite-note)
           ))
+(add-hook 'matlab-mode-hook '(lambda ()
+          (local-set-key (kbd "C-c p") 'njh-open-cite-pdf)
+          (local-set-key (kbd "C-c n") 'njh-open-cite-note)
+          ))
+(add-hook 'emacs-lisp-mode-hook '(lambda ()
+          (local-set-key (kbd "C-c p") 'njh-open-cite-pdf)
+          (local-set-key (kbd "C-c n") 'njh-open-cite-note)
+          ))
 
 ;; BibTeX mode.
 (require 'bibtex)
 (setq bibtex-string-files '("strings.bib"))
+
 ;; Does removing trailing / on next line cure
 ;; bibtex-parse-buffers-stealthily errors?
-(setq bibtex-string-file-path '("~/texmf/bibtex/bib"))
+;; (setq bibtex-string-file-path '("~/texmf/bibtex/bib"))
+(setq bibtex-string-file-path (concat (getenv "HOME") "/texmf/bibtex/bib"))
+
 (setq bibtex-field-delimiters 'double-quotes)
 ;; Can't match my key exactly - compromise on fixed # chars from each name.
 ; (setq bibtex-autokey-names-stretch 3);  Use up to 4 names in total
@@ -3077,8 +3292,9 @@ the character typed."
 ;; [2020-11-07 Sat 19:21]
 ;; This now needed for previous command to work.
 ;; https://tex.stackexchange.com/questions/425883/emacs-auctex-reftex-and-biblatexs-multicite-commands
-;; Might not be needed! my-cite works everywhere except in whatis.org!  Why?
+;; Might not be needed! ;; my-cite works everywhere except in whatis.org!  Why?
 ;; [2020-11-08 Sun 16:37] Now it works!
+;; [2020-12-05 Sat 12:28] Only work in certain places in whatis.org!
 (setq LaTeX-reftex-ref-style-auto-activate nil)
 (setq LaTeX-reftex-cite-format-auto-activate nil)
 
@@ -3346,6 +3562,9 @@ the character typed."
 ;; This is slow to load!
 ;; Support for latexmk
 (use-package auctex-latexmk
+  ;; Neither "defer" or "after" allow it to load.
+  ;; :defer
+  ;; :after (auctex)
 ;;  :load-path "~/dropbox/elisp/auctex-latexmk"
   :config
      (auctex-latexmk-setup)
@@ -3852,6 +4071,7 @@ return `nil'."
 (global-set-key (kbd "C-M-u") 'my-top-level)
 ; (global-set-key [S-f11] 'org2blog/wp-post-subtree)
 (global-set-key [S-f11] 'org2blog-subtree-post-save)
+(global-set-key [M-f11] 'org2blog-buffer-post-publish)
 
 ;; This doesn't work when already at top level.
 ;; (defun my-wp-post-subtree ()
@@ -4086,12 +4306,19 @@ table, obtained by prompting the user."
 (define-key org-mode-map (kbd "C-c =") nil)
 (setq org-imenu-depth 7)
 
+;; To allow multi-line emphasis.
+;; https://emacs.stackexchange.com/questions/27892/italic-paragraphs-in-org-mode
+(setf (nth 4 org-emphasis-regexp-components) 10)
+(load-library "org")
+
 ;; For stripe-table-mode
 (use-package stripe-buffer)
 
-;; New to Emacs 27 and mentioned in peta20.
-;; But its keymap is overwitten by boomkark+, wihch I don't load!
-;;; C-x p: Is keymap set to project?
+;; Reset gc threshold that was increased at start.
+(setq gc-cons-threshold (* 2 1000 1000))
+
+;; New to Emacs 27 and mentioned in \cite{peta20}.
+;; Automatically loaded, it seems.
 ;; (use-package project)
 
 ;;; * Local Variables
