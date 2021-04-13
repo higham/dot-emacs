@@ -4,9 +4,9 @@ Dot Emacs
 This repository contains my .emacs file.
 It builds on the work of many others, including
 [Sacha Chua](https://github.com/sachac),
-[Xah Lee](https://github.com/xahlee), and
-[John Wiegley](https://github.com/jwiegley).
-
+[Xah Lee](https://github.com/xahlee), 
+[John Wiegley](https://github.com/jwiegley), and
+[Protesilaos Stavrou](https://github.com/protesilaos/dotfiles).
 I run Emacs on both Windows and Mac machines.  On Windows, my ~/.emacs file
 (called .emacs_windows in this repository) loads ~/dropbox/.emacs and
 then ~/dropbox/.emacs_custom-windows.
@@ -19,8 +19,7 @@ The setup for the Mac is analogous.
 * The code is lightly documented with links to sources for the
   things I am using.
 
-* I mostly use John Wiegley's use-package for loading packages.  Not
-  everything uses it and I may convert other packages to load this way.
+* I mostly use John Wiegley's use-package for loading packages.  
 
 * Orgstruct mode is turned on by the first line of the file, so pressing
   tab or shift-tab will collapse or expand the file into or from headings,
