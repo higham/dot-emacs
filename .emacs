@@ -63,15 +63,15 @@
 (require 'use-package-ensure)
 (setq use-package-always-ensure t)
 
-(use-package auto-package-update
-  :custom
-  (auto-package-update-interval 7)  ; 2 is too frequent.
-  (auto-package-update-prompt-before-update t)
-;;  (auto-package-update-hide-results t)
-  :config
-  (auto-package-update-maybe)
-  ;;  (auto-package-update-at-time "09:00")
-  )
+;; (use-package auto-package-update
+;;   :custom
+;;   (auto-package-update-interval 7)  ; 2 is too frequent.
+;;   (auto-package-update-prompt-before-update t)
+;; ;;  (auto-package-update-hide-results t)
+;;   :config
+;;   (auto-package-update-maybe)
+;;   ;;  (auto-package-update-at-time "09:00")
+;;   )
 
 ;; ;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
 ;; ;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
@@ -118,6 +118,8 @@
 (setq use-package-verbose t)
 ;; -----------------------------------------------------------------
 (bind-key* "C-z" 'scroll-up-keep-cursor)
+
+(set-default-coding-systems 'utf-8)
 
 (use-package which-key
   ;; :load-path "~/dropbox/elisp/which-key"
@@ -281,23 +283,24 @@
 (setq calendar-location-name "Eccles, UK")
 
 ;----------------------------------------------------------------------
-(use-package anzu
-  :defer
-  ;; :load-path "~/Dropbox/elisp/anzu"
-  :config
-  (global-anzu-mode 1)
-  (set-face-attribute 'anzu-mode-line nil
-                      :foreground "yellow" :weight 'bold)
-  (custom-set-variables
-   '(anzu-mode-lighter "")
-   '(anzu-deactivate-region t)
-   '(anzu-search-threshold 1000)
-   '(anzu-replace-threshold 50)
-   '(anzu-replace-to-string-separator " => "))
-  (define-key isearch-mode-map [remap isearch-query-replace]  #'anzu-isearch-query-replace)
-  (define-key isearch-mode-map [remap isearch-query-replace-regexp] #'anzu-isearch-query-replace-regexp)
-)
-; ----------------------------------------------------------------------
+;; (use-package anzu
+;;   :defer
+;;   ;; :load-path "~/Dropbox/elisp/anzu"
+;;   :config
+;;   (global-anzu-mode 1)
+;;   (set-face-attribute 'anzu-mode-line nil
+;;                       :foreground "yellow" :weight 'bold)
+;;   (custom-set-variables
+;;    '(anzu-mode-lighter "")
+;;    '(anzu-deactivate-region t)
+;;    '(anzu-search-threshold 1000)
+;;    '(anzu-replace-threshold 50)
+;;    '(anzu-replace-to-string-separator " => "))
+;;   (define-key isearch-mode-map [remap isearch-query-replace]  #'anzu-isearch-query-replace)
+;;   (define-key isearch-mode-map [remap isearch-query-replace-regexp] #'anzu-isearch-query-replace-regexp)
+;; )
+
+                                        ; ----------------------------------------------------------------------
 ;; For latest ORG mode downloaded by me.
 ;; But now I use Elpa.
 ; (add-to-list 'load-path "~/Dropbox/elisp/org/lisp")
@@ -525,7 +528,7 @@
 (use-package shell-pop
   :defer t
   :bind ("S-<f3>" . shell-pop)
-)        
+)
 ;; (global-set-key [S-f3] 'shell-pop) ;; Default is buffer's dir.
 
 ;; Reload .emacs.
@@ -705,85 +708,7 @@
 ;;                "\\(^\\s-*(use-package +\\)\\(\\_<.+\\_>\\)" 2)))
 ;;   (add-hook 'emacs-lisp-mode-hook #'jcs-use-package))
 
-;; ----------------------------------------------------
-(use-package orderless
-  :init (icomplete-mode) ; optional but recommended!
-  :custom (completion-styles '(orderless)))
-;; ----------------------------------------------------
-
-;; -----------------------------------------------------------------
-(use-package consult
-  ;; Replace bindings. Lazily loaded due by `use-package'.
-  :bind (("C-x M-:" . consult-complex-command)
-         ;; ("C-c h" . consult-history)
-         ("C-c m" . consult-mode-command)
-         ("C-x b" . consult-buffer)
-         ;; ("C-x 4 b" . consult-buffer-other-window)
-         ;; ("C-x 5 b" . consult-buffer-other-frame)
-         ;; ("C-x r x" . consult-register)
-         ;; ("C-x r b" . consult-bookmark)
-         ("M-g l"   . consult-goto-line)
-         ("M-g M-l" . consult-goto-line)
-         ;; ("M-g M-g" . consult-goto-line)
-         ("M-s a"   . consult-apropos)       
-         ("M-s M-a" . consult-apropos)       
-         ("M-s m"   . consult-imenu)       
-         ("M-s M-m" . consult-imenu)       
-         ("M-s o"   . consult-outline)       
-         ("M-s M-o" . consult-outline)       
-         ("M-s l"   . consult-line)          
-         ("M-s M-l" . consult-line)          
-         ("M-g m" . consult-mark)          ;; Choose marks in buffer.
-         ("M-g n" . consult-global-mark)   ;; Choose marks in all buffers.
-         ("M-s r" . consult-git-grep)      ;; or consult-grep, consult-ripgrep
-         ;; ("M-s f" . consult-find)          ;; or consult-locate, my-fdfind
-         ;; ("M-s i" . consult-project-imenu) ;; or consult-imenu
-         ("M-s e" . consult-error)
-         ("M-s m" . consult-multi-occur)
-         ;; ("M-y" . consult-yank-pop)
-         ("C-h a" . consult-apropos))
-  )
-
-
-;; Doesn't work for me - has no effect.
-;; https://github.com/minad/marginalia
-(use-package marginalia
-  :bind (:map minibuffer-local-map
-              ("S-C-a" . marginalia-cycle)
-         ;; When using the Embark package, you can bind `marginalia-cycle' as an Embark action!
-         ;; :map embark-general-map
-         ;;     ("A" . marginalia-cycle)
-        )
-  ;; :config
-  :init
-  (marginalia-mode))
-
-(use-package embark
-  :bind
-  ;; ("C-S-a" . embark-act)  ; pick some comfortable binding
-  ("C-#" . embark-act)          
-  :config
-    ;; From https://github.com/daviwil/dotfiles/blob/master/Emacs.org
-    ;; Show Embark actions via which-key
-  (setq embark-action-indicator
-        (lambda (map)
-          (which-key--show-keymap "Embark" map nil nil 'no-paging)
-          #'which-key--hide-popup-ignore-command)
-        embark-become-indicator embark-action-indicator)
-  )
-(add-hook 'org-mode-hook '(lambda ()
-          (local-set-key (kbd "C-#") ' embark-act)
-          ))
-
-;; ;; Consult users will also want the embark-consult package.
-;; (use-package embark-consult
-;;   :ensure t
-;;   :after (embark consult)
-;;   ;; if you want to have consult previews as you move around an
-;;   ;; auto-updating embark collect buffer
-;;   :hook
-;;   (embark-collect-mode . embark-consult-preview-minor-mode))
-
+;; ;; Cannot get it to work.
 ;; ;; Cursor keys and C-v don't work in minibuffer!
 ;; (use-package icomplete-vertical
 ;;   :ensure t
@@ -804,44 +729,153 @@
 ;;               ("C-p" . icomplete-backward-completions)
 ;;               ("C-v" . icomplete-vertical-toggle)))
 
-;; https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html
-;; Ivy and Swiper
-;; require 'ivy)
-;; (use-package swiper
-(use-package ivy
-  :config
-;;  (progn
-    (ivy-mode 1)
-;;    (setq enable-recursive-minibuffers t)  ;; Dangerous?
-    (setq ivy-use-virtual-buffers t
-          ivy-count-format "%d/%d ")
-    (global-set-key (kbd "C-M-s") 'isearch-forward) ;; Keep isearch option.
-    (global-set-key (kbd "C-M-r") 'isearch-backward)
-    (global-set-key (kbd "C-s") 'swiper)
-    (global-set-key (kbd "C-S-s") 'swiper-isearch)
-    (global-set-key (kbd "<f6>") 'ivy-resume)
-    (global-set-key (kbd "C-9")   'ivy-switch-buffer)
-    (global-set-key (kbd "C-S-f") 'counsel-find-file)
-    (global-set-key (kbd "C-c g") 'counsel-git)
-    ;; (setq ivy-re-builders-alist '((t . orderless-ivy-re-builder)))
-    )
-;; )
-
-(use-package ivy-rich
+(use-package selectrum
+  :bind (("C-M-r" . selectrum-repeat)
+         :map selectrum-minibuffer-map
+         ("C-r" . selectrum-select-from-history)
+;;         :map minibuffer-local-map
+;;         ("M-h" . backward-kill-word)
+       )
+  :custom
+;;  (selectrum-fix-minibuffer-height t)
+;;   (selectrum-num-candidates-displayed 7)
+  (selectrum-refine-candidates-function #'orderless-filter)
+  (selectrum-highlight-candidates-function #'orderless-highlight-matches)
+  :custom-face
+  (selectrum-current-candidate ((t (:background "#3a3f5a"))))
   :init
-  (ivy-rich-mode 1)
-  :config
-  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
+  (selectrum-mode 1))
 
-;; https://melpa.org/#/embark-consult
-;; (with-eval-after-load 'consult
-;; (with-eval-after-load 'embark
-;;   (require 'embark-consult)))
-(use-package avy-embark-collect)
+;; ----------------------------------------------------
+(use-package orderless
+  :init (icomplete-mode) ; optional but recommended!
+  :custom (completion-styles '(orderless))
+  ;; :custom (completion-styles '(orderless-initialism orderless-literal
+  ;;                             orderless-regexp))
+  ;; :custom (completion-styles '(orderless-strict-leading=initialism))
+  )
+
+;; (defun my/match-components-literally ()
+;;   "Components match literally for the rest of the session."
+;;   (interactive)
+;;   ;; (setq-local orderless-matching-styles '(orderless-literal)
+;;   (setq-local orderless-matching-styles '(orderless-flex)
+;;               orderless-style-dispatchers nil))
+
+;; (define-key minibuffer-local-completion-map (kbd "C-l")
+;;   #'my/match-components-literally)
+;; ----------------------------------------------------
+
+;; -----------------------------------------------------------------
+(use-package consult
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (("C-x M-:" . consult-complex-command)
+         ;; ("C-c h" . consult-history)
+         ("C-c m" . consult-mode-command)
+         ("C-x b" . consult-buffer)
+         ;; ("C-x 4 b" . consult-buffer-other-window)
+         ;; ("C-x 5 b" . consult-buffer-other-frame)
+         ;; ("C-x r x" . consult-register)
+         ;; ("C-x r b" . consult-bookmark)
+         ("M-g l"   . consult-goto-line)
+         ("M-g M-l" . consult-goto-line)
+         ;; ("M-g M-g" . consult-goto-line)
+         ("M-s a"   . consult-apropos)
+         ("M-s M-a" . consult-apropos)
+         ("M-s m"   . consult-imenu)
+         ("M-s M-m" . consult-imenu)
+         ("M-s o"   . consult-outline)
+         ("M-s M-o" . consult-outline)
+         ("M-s l"   . consult-line)
+         ("M-s M-l" . consult-line)
+         ("M-g m" . consult-mark)          ;; Choose marks in buffer.
+         ("M-g n" . consult-global-mark)   ;; Choose marks in all buffers.
+         ("M-s r" . consult-git-grep)      ;; or consult-grep, consult-ripgrep
+         ;; ("M-s f" . consult-find)          ;; or consult-locate, my-fdfind
+         ;; ("M-s i" . consult-project-imenu) ;; or consult-imenu
+         ("M-s e" . consult-error)
+         ("M-s m" . consult-multi-occur)
+         ;; ("M-y" . consult-yank-pop)
+         ("C-h a" . consult-apropos))
+  )
+
+(use-package embark
+  :bind
+  ;; ("C-S-a" . embark-act)  ; pick some comfortable binding
+  ("C-#" . embark-act)
+   ;; When using the Embark package, you can bind `marginalia-cycle' as an Embark action!
+   (:map embark-general-map
+          ("A" . marginalia-cycle)
+   )
+  :config
+    ;; From https://github.com/daviwil/dotfiles/blob/master/Emacs.org
+    ;; Show Embark actions via which-key
+  (setq embark-action-indicator
+        (lambda (map)
+          (which-key--show-keymap "Embark" map nil nil 'no-paging)
+          #'which-key--hide-popup-ignore-command)
+        embark-become-indicator embark-action-indicator)
+  )
+(add-hook 'org-mode-hook '(lambda ()
+          (local-set-key (kbd "C-#") ' embark-act)
+          ))
+
+;; Doesn't work for me - has no effect.
+;; https://github.com/minad/marginalia
+(use-package marginalia
+  :bind (
+;;      Doesn't work for me.
+      :map minibuffer-local-map
+          ("S-C-a" . marginalia-cycle)
+     )
+  ;; :config
+  :init
+   (setq marginalia-annotators
+        '(marginalia-annotators-heavy
+          marginalia-annotators-light))
+  ;; (setq marginalia-annotators
+  ;;       '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  (marginalia-mode))
+
+;; ;; https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html
+;; ;; Ivy and Swiper
+;; ;; require 'ivy)
+;; ;; (use-package swiper
+;; (use-package ivy
+;;   :config
+;; ;;  (progn
+;;     (ivy-mode 1)
+;; ;;    (setq enable-recursive-minibuffers t)  ;; Dangerous?
+;;     (setq ivy-use-virtual-buffers t
+;;           ivy-count-format "%d/%d ")
+;;     (global-set-key (kbd "C-M-s") 'isearch-forward) ;; Keep isearch option.
+;;     (global-set-key (kbd "C-M-r") 'isearch-backward)
+;;     (global-set-key (kbd "C-s") 'swiper)
+;;     (global-set-key (kbd "C-S-s") 'swiper-isearch)
+;;     (global-set-key (kbd "<f6>") 'ivy-resume)
+;;     (global-set-key (kbd "C-9")   'ivy-switch-buffer)
+;;     (global-set-key (kbd "C-S-f") 'counsel-find-file)
+;;     (global-set-key (kbd "C-c g") 'counsel-git)
+;;     ;; (setq ivy-re-builders-alist '((t . orderless-ivy-re-builder)))
+;;     )
+;; ;; )
+
+;; (use-package ivy-rich
+;;   :init
+;;   (ivy-rich-mode 1)
+;;   :config
+;;   (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
+
+;; ;; https://melpa.org/#/embark-consult
+;; ;; (with-eval-after-load 'consult
+;; ;; (with-eval-after-load 'embark
+;; ;;   (require 'embark-consult)))
+;; (use-package avy-embark-collect)
+
 (use-package embark-consult
   :config
   (add-hook 'embark-collect-mode-hook #'embark-consult-preview-minor-mode)
-)  
+  )
 
 ;; http://mbork.pl/2014-04-04_Fast_buffer_switching_and_friends
 (defun switch-bury-or-kill-buffer (&optional aggr)
@@ -1248,63 +1282,32 @@ Emacs buffers are those whose name starts with *."
   "bib"
   ("<f3>" helm-bibtex "helm-bibtex")
   ("<f4>" helm-resume "helm-resume")
-  ("b"
-   (lambda () (interactive) (dired "~/bib"))
-   "bib")
-  ("d"
-   (lambda () (interactive) (dired "~/texmf/bibtex/bib"))
-   "texmf/bib")
-  ("c"
-   (lambda () (interactive) (find-file "~/texmf/bibtex/bib/cut.bib"))
-   "cut")
-  ("l"
-   (lambda () (interactive) (find-file "~/texmf/bibtex/bib/la.bib"))
-    "la")
-  ("h"
-   (lambda () (interactive) (find-file "~/texmf/bibtex/bib/njhigham.bib"))
-   "higham")
-   ("m"
-    (lambda () (interactive) (find-file "~/texmf/bibtex/bib/misc.bib"))
-    "misc")
-   ("e"
-    (lambda () (interactive) (find-file "~/texmf/bibtex/bib/ode.bib"))
-    "ode")
-  ("o"
-    (lambda () (interactive) (switch-to-buffer "*org*"))
-    "org*")
-
-;;   (lambda () (interactive) (find-file "~/texmf/bibtex/bib/ode.bib"))
+  ;; ("b" (lambda () (interactive) (dired "~/bib")) "bib")
+  ("b"  (dired "~/bib") "bib")
+  ("d" (dired "~/texmf/bibtex/bib") "texmf/bib")
+  ("c" (find-file "~/texmf/bibtex/bib/cut.bib") "cut")
+  ("l" (find-file "~/texmf/bibtex/bib/la.bib") "la")
+  ("h" (find-file "~/texmf/bibtex/bib/njhigham.bib") "higham")
+  ("m" (find-file "~/texmf/bibtex/bib/misc.bib") "misc")
+  ("e" (find-file "~/texmf/bibtex/bib/ode.bib") "ode")
+  ("o" (switch-to-buffer "*org*") "org*")
+;;    (find-file "~/texmf/bibtex/bib/ode.bib"))
 ;;   "ode")
-   ("s"
-    (lambda () (interactive) (find-file "~/texmf/bibtex/bib/strings.bib"))
-    "strings")
-   ("x"
-    (lambda () (interactive) (switch-to-buffer "*scratch*"))
-    "scratch*")
-   ("t"
-    (lambda () (interactive) (switch-to-buffer "*text*"))
-    "text*")
+   ("s" (find-file "~/texmf/bibtex/bib/strings.bib") "strings")
+   ("x" (switch-to-buffer "*scratch*") "scratch*")
+   ("t" (switch-to-buffer "*text*") "text*")
 ;; ("z" scratch "scratch-make")
    ("z" scratch)
 )
 
 (defhydra hydra-dired (:color blue)
    "dired"
-  ("m"
-   (lambda () (interactive) (dired "~/memo"))
-   "memo")
-  ("t"
-   (lambda () (interactive) (dired "~/tex"))
-   "tex")
-  ("b"
-   (lambda () (interactive) (dired "~/matlab"))
-   "matlab")
-  ("d"
-   (lambda () (interactive) (dired "~/dropbox"))
-   "dropbox")
-  ("h"
-   (lambda () (interactive) (dired "~/"))
-   "home")
+;;  ("m"  (lambda () (interactive) (dired "~/memo"))
+  ("m"  (dired "~/memo")   "memo")
+  ("t"   (dired "~/tex") "tex")
+  ("b"   (dired "~/matlab") "matlab")
+  ("d"   (dired "~/dropbox") "dropbox")
+  ("h"   (dired "~/") "home")
 )
 
 (global-set-key (kbd "M-<f5>")   'hydra-zoom/body)
@@ -1696,16 +1699,16 @@ Works in Microsoft Windows, Mac OS X, Linux."
   (beginning-of-buffer)
   (dired-next-line 4))
 
-(define-key dired-mode-map
-  (vector 'remap 'beginning-of-buffer) 'dired-back-to-top)
+;; (define-key dired-mode-map
+;;  (vector 'remap 'beginning-of-buffer) 'dired-back-to-top)
 
 (defun dired-jump-to-bottom ()
   (interactive)
   (end-of-buffer)
   (dired-next-line -1))
 
-(define-key dired-mode-map
-  (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
+;; (define-key dired-mode-map
+;;   (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
 
 ;;------------------------------------------------------------
 (when (system-is-windows)
@@ -1917,11 +1920,21 @@ Works in Microsoft Windows, Mac OS X, Linux."
 ;; (add-to-list 'load-path "~/Dropbox/elisp/ibuffer-vc-master")
 (use-package ibuffer-vc)
 
+;;  Doesn't work.
+;; (defun old-find-file()
+;;   "Call old find-file that is hidden by ido."
+;;   (interactive "p")
+;;   (ido mode 0)
+;;   (find-file)
+;;   (ido mode 1)
+;;   )
+;; (global-set-key (kbd "C-S-f") 'old-find-file)
+
 ;; Ido mode.
 ;; http://www.masteringemacs.org/articles/2010/10/10/introduction-to-ido-mode/
 (ido-mode 1)
 (setq ido-enable-flex-matching t)
-(setq ido-everywhere t)
+;; (setq ido-everywhere t)  ;; Makes no difference!
 (setq ido-create-new-buffer 'always)
 (setq ido-enable-tramp-completion nil)
 (setq ido-max-directory-size 1000000)
@@ -3104,7 +3117,8 @@ the character typed."
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "\"" nil (point-min) (point-max))
    (replace-string "" "-" nil (point-min) (point-max))
-   (replace-string "" "" nil (point-min) (point-max))
+   (replace-string "
+" "" nil (point-min) (point-max))
 ;; Next line deleted as it puts everything on one line when applied to
 ;; whole file!
 ;;    (replace-string "
@@ -3671,7 +3685,7 @@ the character typed."
 ;; http://stackoverflow.com/questions/7899845/emacs-synctex-skim-how-to-correctly-set-up-syncronization-none-of-the-exia
 
 ;; My function to open TeX file in Acrobat (for printing or talk).
-;; Only intended for Windows.  Heed to modify for Mac.
+;; Only intended for Windows.  Need to modify for Mac.
 ;; https://stackoverflow.com/questions/17325713/looking-for-a-replace-in-string-function-in-elisp
 (defun open-in-acrobat (arg)
   "Open PDF of current LaTeX buffer in Acrobat."
@@ -4029,7 +4043,7 @@ return `nil'."
 ;; mapc: Removing old name: Permission denied, d:/Dropbox (Personal)/org/whatis.fdb_latexmk"
 (setq org-latex-logfiles-extensions
   '("aux" "bcf" "blg" "fls" "figlist" "idx" "log" "nav" "out"
-    "ptc" "run.xml" "snm" "toc" "vrb" "xdv")) 
+    "ptc" "run.xml" "snm" "toc" "vrb" "xdv"))
 
 ;; Link abbrevations.
 (setq org-link-abbrev-alist

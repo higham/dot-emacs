@@ -202,7 +202,7 @@
      (verbatim . verb)))
  '(package-hidden-regexps '("\\`auctex\\'"))
  '(package-selected-packages
-   '(icomplete-vertical use-package-ensure-system-package matlab-load misc unbound dired+ fill-column-indicator git-gutter dumb-jump org deft edit-server latex-extra ace-popup-menu ox-pandoc auctex-latexmk ripgrep wc-mode dired-quick-sort ht ace-link magit counsel gnupg try swiper ivy wttrin goto-chg char-menu helm-bibtex helm smex color-theme chess browse-kill-ring))
+   '(yasnippet wttrin wrap-region which-key wgrep wc-mode use-package-ensure-system-package undo-tree try switch-window stripe-buffer smex shrink-whitespace shell-pop scratch ripgrep project ox-pandoc outshine orgalist org2blog orderless matlab-mode markdown-mode marginalia magit-popup magit macrostep latexdiff latex-extra ivy-rich ivy-bibtex imenu-anywhere icomplete-vertical ibuffer-vc helpful helm-bibtex graphql goto-chg git-timemachine git-gutter ghub fix-word fireplace fill-column-indicator expand-region esup embark-consult elfeed-goodies edit-server dumb-jump dired-quick-sort diminish deft define-word crux counsel clippy char-menu bug-hunter bufler browse-kill-ring avy-embark-collect auto-package-update auctex-latexmk anzu ace-window ace-popup-menu ace-link ace-jump-zap ace-jump-buffer))
  '(safe-local-variable-values
    '((orgstruct-heading-prefix-regexp . ";;; ")
      (TeX-command-extra-options . "-shell-escape --enable-write18 --synctex=1")
