@@ -730,12 +730,12 @@
 ;;               ("C-v" . icomplete-vertical-toggle)))
 
 (use-package selectrum
-  :bind (("C-M-r" . selectrum-repeat)
-         :map selectrum-minibuffer-map
-         ("C-r" . selectrum-select-from-history)
+  ;; :bind (("C-M-r" . selectrum-repeat)  ;; Clashes with ctrl-f.
+  ;;        :map selectrum-minibuffer-map
+  ;;        ("C-r" . selectrum-select-from-history)
 ;;         :map minibuffer-local-map
 ;;         ("M-h" . backward-kill-word)
-       )
+;;       )
   :custom
 ;;  (selectrum-fix-minibuffer-height t)
 ;;   (selectrum-num-candidates-displayed 7)
@@ -745,6 +745,12 @@
   (selectrum-current-candidate ((t (:background "#3a3f5a"))))
   :init
   (selectrum-mode 1))
+
+(use-package selectrum-prescient
+  :ensure t
+  :config
+  (selectrum-prescient-mode 1)
+  (prescient-persist-mode 1))
 
 ;; ----------------------------------------------------
 (use-package orderless
@@ -797,6 +803,8 @@
          ("M-s m" . consult-multi-occur)
          ;; ("M-y" . consult-yank-pop)
          ("C-h a" . consult-apropos))
+  :config
+      (setq consult-project-root-function #'vc-root-dir)
   )
 
 (use-package embark
@@ -888,6 +896,12 @@ kill it (unless it's modified)."
    ((equal aggr '(4)) (bury-buffer))
    ((equal aggr '(16)) (kill-buffer-if-not-modified (current-buffer)))))
 (global-set-key (kbd "C-x C-b") 'switch-bury-or-kill-buffer)
+
+(use-package ctrlf
+    :config
+    (ctrlf-mode)
+    (setq ctrlf-alternate-search-style 'fuzzy) ;; Style for  C-M-s/r.
+)    
 
 ;; ----------------------------------------------------
                                         ;
@@ -3415,8 +3429,8 @@ the character typed."
 
 ;; From comment at https://nickhigham.wordpress.com/2016/01/06/managing-bibtex-files-with-emacs/
 (defvar bp/bibtex-fields-ignore-list
-  '("keywords" "abstract" "file" "issn" "eprint" "issue_date"
-    "articleno" "numpages" "acmid"))
+  '("keywords" "abstract" "file" "issn" "eprint" "issue_date" "publisher"
+    "address" "articleno" "numpages" "acmid"))
 (defun bp/bibtex-clean-entry-hook ()
   (save-excursion
   (let (bounds)
@@ -3435,7 +3449,7 @@ the character typed."
 (setq sentence-end-double-space nil)
 
 ;; http://emacswiki.org/emacs/UnfillParagraph
-;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
+;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
 (defun unfill-paragraph ()
   "Takes a multi-line paragraph and makes it into a single line of text."
   (interactive)

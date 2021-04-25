@@ -239,4 +239,5 @@
  '(hydra-face-amaranth ((t (:foreground "dark salmon" :weight bold))))
  '(hydra-face-blue ((t (:foreground "#00FFFF" :weight bold))))
  '(hydra-face-red ((t (:foreground "orange red" :weight bold))))
- '(region ((t (:background "grey40")))))
+ '(region ((t (:background "grey40"))))
+ '(selectrum-current-candidate ((t (:background "#3a3f5a")))))
