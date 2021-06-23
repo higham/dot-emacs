@@ -208,7 +208,8 @@
  '(font-latex-slide-title-face ((((class color) (background dark)) (:inherit nil :foreground "yellow"))))
  '(font-latex-verbatim-face ((((class color) (background dark)) (:inherit nil :foreground "burlywood"))))
  '(org-verbatim ((t (:inherit shadow :foreground "#aef"))))
- '(region ((t (:background "grey40")))))
+ '(region ((t (:background "grey40"))))
+ '(selectrum-current-candidate ((t (:background "#3a3f5a")))))
 
 ;; '(org-verbatim ((t (:inherit shadow :foreground "deepSkyBlue1"))))
 

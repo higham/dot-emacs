@@ -272,10 +272,29 @@
 ;; (unless (server-running-p)
 ;;   (server-start))
 
+;; ---------------------------------------------------------------
 ;; For edit-with-emacs extension.
-(when (require 'edit-server nil t)
-    (setq edit-server-new-frame nil)
-    (edit-server-start))
+;; (when (require 'edit-server nil t)
+;;     (setq edit-server-new-frame nil)
+;;     (edit-server-start))
+
+(use-package edit-server
+  :ensure t
+  :commands edit-server-start
+  :init (if after-init-time
+              (edit-server-start)
+            (add-hook 'after-init-hook
+                      #'(lambda() (edit-server-start))))
+  :config (setq edit-server-new-frame-alist
+                '((name . "Edit with Emacs FRAME")
+                  (top . 200)
+                  (left . 200)
+                  (width . 80)
+                  (height . 25)
+                  (minibuffer . t)
+                  (menu-bar-lines . t)
+                  (window-system . x))))
+;; ---------------------------------------------------------------
 
 ;; http://www.jmdeldin.com/posts/2016/sunrise-and-sunsets-in-emacs.html
 (setq calendar-latitude 53.482449)
@@ -730,7 +749,7 @@
 ;;               ("C-v" . icomplete-vertical-toggle)))
 
 (use-package selectrum
-  ;; :bind (("C-M-r" . selectrum-repeat)  ;; Clashes with ctrl-f.
+  ;; :bind (("C-M-r" . selectrum-repeat)  ;; Clashes with ctrlf.
   ;;        :map selectrum-minibuffer-map
   ;;        ("C-r" . selectrum-select-from-history)
 ;;         :map minibuffer-local-map
@@ -742,7 +761,9 @@
   (selectrum-refine-candidates-function #'orderless-filter)
   (selectrum-highlight-candidates-function #'orderless-highlight-matches)
   :custom-face
-  (selectrum-current-candidate ((t (:background "#3a3f5a"))))
+;; (selectrum-current-candidate ((t (:background "#3a3f5a"))))
+;; (selectrum-current-candidate ((t (:background "#adab8b"))))
+  (selectrum-current-candidate ((t (:background "#8f8d72"))))
   :init
   (selectrum-mode 1))
 
@@ -818,12 +839,17 @@
   :config
     ;; From https://github.com/daviwil/dotfiles/blob/master/Emacs.org
     ;; Show Embark actions via which-key
-  (setq embark-action-indicator
-        (lambda (map)
-          (which-key--show-keymap "Embark" map nil nil 'no-paging)
-          #'which-key--hide-popup-ignore-command)
-        embark-become-indicator embark-action-indicator)
-  )
+(setq embark-action-indicator
+      (lambda (map _target)
+        (which-key--show-keymap "Embark" map nil nil 'no-paging)
+        #'which-key--hide-popup-ignore-command)
+      embark-become-indicator embark-action-indicator))
+  ;; (setq embark-action-indicator
+  ;;       (lambda (map)
+  ;;         (which-key--show-keymap "Embark" map nil nil 'no-paging)
+  ;;         #'which-key--hide-popup-ignore-command)
+  ;;       embark-become-indicator embark-action-indicator)
+  ;; )
 (add-hook 'org-mode-hook '(lambda ()
           (local-set-key (kbd "C-#") ' embark-act)
           ))
@@ -897,11 +923,19 @@ kill it (unless it's modified)."
    ((equal aggr '(16)) (kill-buffer-if-not-modified (current-buffer)))))
 (global-set-key (kbd "C-x C-b") 'switch-bury-or-kill-buffer)
 
+;; M-s s to change search style within a search.
 (use-package ctrlf
     :config
     (ctrlf-mode)
     (setq ctrlf-alternate-search-style 'fuzzy) ;; Style for  C-M-s/r.
-)    
+    ;; Redefine fuzzy to allow line breaks.
+    ;; Idea from https://emacs.stackexchange.com/questions/10582/search-for-string-ignoring-new-lines
+(defun ctrlf-translate-fuzzy-literal (input)
+  "Build a fuzzy-matching regexp from literal INPUT.
+See `ctrlf-split-fuzzy' for how INPUT is split into subinputs.
+Each subinput is quoted and the results are joined with \".*\"."
+  (string-join (mapcar #'regexp-quote (ctrlf-split-fuzzy input)) "[ \t\r\n]*"))
+)
 
 ;; ----------------------------------------------------
                                         ;
@@ -3170,7 +3204,7 @@ the character typed."
 
 ;; To fix problem with parsing error messages from Emacs 24.x onwards:
 ;; http://tex.stackexchange.com/questions/124246/uninformative-error-message-when-using-auctex
-(setq LaTeX-command-style '(("" "%(PDF)%(latex) -file-line-error %S%(PDFout)")))
+;; (setq LaTeX-command-style '(("" "%(PDF)%(latex) -file-line-error %S%(PDFout)")))
 
 ;; From https://github.com/tmalsburg/helm-bibtex/issues/121#issuecomment-237981605
 (defun bibtex-completion-open-pdf-of-entry-at-point ()
@@ -3502,7 +3536,7 @@ the character typed."
 (add-hook 'latex-mode-hook 'turn-on-reftex) ; with Emacs latex mode
 (setq reftex-plug-into-AUCTeX t)            ; Integrate RefTeX with AUCTeX.
 
-;; This redefinition is to make njh-open-cite-pdf work in comments, as be
+;; This redefinition is to make njh-open-cite-pdf work in comments, as by
 ;; default RefTeX doesn't want to let reftex-view-crossref work in
 ;; comments.  Hope it doesn't have any unwanted side effects.
 (defun reftex-in-comment ()
@@ -3655,6 +3689,7 @@ the character typed."
       '(
         ;; ("cite" "[{")
         ("iemph" "{")
+        ("citet" "{")
         ))
 ;---------------------------------
 
