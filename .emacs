@@ -23,29 +23,6 @@
 (fset 'yes-or-no-p 'y-or-n-p)        ; Change yes/no questions to y/n type.
 (setq default-input-method 'TeX)     ; For C-\.
 
-;; For packages I've downloaded.
-;; (add-to-list 'load-path "~/Dropbox/elisp")
-
-;; (if (version< emacs-version "25.0")
-;;      ;; Now included in Emacs 25.
-;;       (use-package seq
-;;         :load-path "~/dropbox/elisp/old/seq"
-;;       )
-;; )
-
-;; Removed [2020-11-01 Sun 20:36] (Emacs 27.1).
-;; Next line necessary after 10-12-17 package update.  let-alist was
-;; downloaded as a dependency but seems we need to load it.
-;; (require 'let-alist) ;; Cures startup problem 10-12-17?
-
-;; Removed [2020-11-01 Sun 20:36] (Emacs 27.1).
-;; (require 'seq)
-
-;; cl is needed, but incompatible with Emacs 27. ! [2020-10-30 Fri 20:56]:
-;; (require 'cl-lib)  ;; Temporary: to get loop macro, needed just below.
-;; (require 'cl)  ;; Temporary: to get loop macro, needed just below.
-               ;; I think cl is automaticaly loaded by something else.
-
 ;;; * Package initialization
 (require 'package)
 (setq package-archives
@@ -63,53 +40,8 @@
 (require 'use-package-ensure)
 (setq use-package-always-ensure t)
 
-;; (use-package auto-package-update
-;;   :custom
-;;   (auto-package-update-interval 7)  ; 2 is too frequent.
-;;   (auto-package-update-prompt-before-update t)
-;; ;;  (auto-package-update-hide-results t)
-;;   :config
-;;   (auto-package-update-maybe)
-;;   ;;  (auto-package-update-at-time "09:00")
-;;   )
-
-;; ;; http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/
-;; ;; http://y.tsutsumi.io/emacs-from-scratch-part-2-package-management.html
-;; (defvar required-packages
-;;   '(ace-jump-buffer ace-jump-mode ace-jump-zap ace-link ace-window anzu auctex
-;;     auctex-latexmk bind-key
-;;     browse-kill-ring bufler
-;;     bug-hunter clippy counsel dash define-word deft diminish
-;;     dired-quick-sort dumb-jump edit-server elfeed elfeed-goodies expand-region
-;;     fireplace fix-word
-;;     git-timemachine helm helm-bibtex hydra ibuffer-vc imenu-anywhere ivy
-;;     ivy-bibtex latex-extra macrostep magit markdown-mode
-;;     matlab-mode orgalist org2blog
-;;     outshine ox-pandoc ripgrep
-;;     s shrink-whitespace shell-pop smex swiper switch-window
-;;     use-package wc-mode wgrep which-key wrap-region yasnippet)
-;;   "A list of packages to ensure are installed at launch.")
-
 (setq use-package-enable-imenu-support t)
 
-;; (defun required-packages-installed-p ()
-;; ;;  (loop for p in required-packages
-;;   (cl-loop for p in required-packages
-;;         when (not (package-installed-p p)) do (return nil)
-;;         finally (return t)))
-
-;; (unless (required-packages-installed-p)
-;;   ;; check for new packages (package versions)
-;;   (message "%s" "Emacs Required is now refreshing its package database...")
-;;   (package-refresh-contents)
-;;   (message "%s" " done.")
-;;   ;; install the missing packages
-;;   (dolist (p required-packages)
-;;     (when (not (package-installed-p p))
-;;       (package-install p))))
-
-;; Recommended way to load use-package.
-; (add-to-list 'load-path "~/Dropbox/elisp/use-package-master")
 (eval-when-compile
   (setq use-package-enable-imenu-support t)
   (require 'use-package))
@@ -118,6 +50,10 @@
 (setq use-package-verbose t)
 ;; -----------------------------------------------------------------
 (bind-key* "C-z" 'scroll-up-keep-cursor)
+
+;; Next line need for bufler.
+;; https://github.com/alphapapa/bufler.el/issues/70
+(use-package map)
 
 (set-default-coding-systems 'utf-8)
 
@@ -194,7 +130,8 @@
 "Return true if the system we are running on Chillblast"
 ;; (string-equal system-name "DESKTOP-II9K04F")) ; OC VII.
 ;; (string-equal system-name "Nick-Chill")) ; Fusion tranquility.
-(string-equal system-name "Chillblast-Nick")) ; OC VII.
+; (string-equal system-name "Chillblast-Nick")) ; OC VII.
+(string-equal system-name "e-10aux4sq4480")) ; Lenovo 520c (2021)
 
 (defun system-is-Lenovo ()
 (interactive)
@@ -326,6 +263,8 @@
 ;; Next line seems needed to make org functions available outside org,
 ;; before org has been invoked (C-c d above).
 (require 'org-install)
+
+(setq org-clock-sound "C:\\Windows\\Media\\Alarm01.wav")
 
 ;; Customize status line.
 (require 'diminish)
@@ -606,6 +545,7 @@
 
 (setq bibtex-completion-library-path
       '("~/pdf_papers/" "~/pdf_papers/higham/" "~/pdf_books/"
+        "~/pdf_books/computing" "~/pdf_books/writing"
         "~/pdf_books/writing" "~/pdf_papers/tex/"
         "~/pdf_other/pdf_thesis/" ))
 ;; ;; This obsolete, but try anyway.
@@ -647,6 +587,24 @@
 ;;  (setq helm-bibtex-open-pdf       ;; Open PDF in Sumatra
     (lambda (fpath) (shell-command
              (concat "start /pgm SumatraPDF.exe -reuse-instance " fpath )))))
+;; -----------------------------------------------------------------
+(use-package bibtex-actions
+  :bind (("C-c b" . bibtex-actions-insert-citation)
+         :map minibuffer-local-map
+         ("M-b" . bibtex-actions-insert-preset))
+  :after embark
+  :config
+  ;; Make the 'bibtex-actions' bindings and targets available to `embark'.
+  (add-to-list 'embark-target-finders 'bibtex-actions-citation-key-at-point)
+  (add-to-list 'embark-keymap-alist '(bibtex . bibtex-actions-map))
+  (add-to-list 'embark-keymap-alist '(citation-key . bibtex-actions-buffer-map))
+  ;; Make sure to set this to ensure 'bibtex-actions-open-link' command works correctly.
+  (bibtex-completion-additional-search-fields '(doi url))
+  (bibtex-completion-bibliography '("~/bib/references.bib")))
+
+;; use consult-completing-read for enhanced interface
+(advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
+
 ;; -----------------------------------------------------------------
 
 ;; Can't get this to work.  Nothing specfically on this found via Google.
@@ -1775,6 +1733,56 @@ Works in Microsoft Windows, Mac OS X, Linux."
 ;; (add-to-list 'load-path "~/Dropbox/elisp/mhayashi1120-Emacs-wgrep-f701229")
 (use-package wgrep)
 
+
+;; -----------------------------------------
+;; From https://protesilaos.com/codelog/2021-07-24-emacs-misc-custom-commands/
+
+;; Only need to type search string.  Does non-recursive search in curr dir.
+(defvar prot-search--grep-hist '()
+  "Input history of grep searches.")
+
+;;;###autoload
+(defun prot-search-grep (regexp &optional recursive)
+  "Run grep for REGEXP.
+
+Search in the current directory using `lgrep'.  With optional
+prefix argument (\\[universal-argument]) for RECURSIVE, run a
+search starting from the current directory with `rgrep'."
+  (interactive
+   (list
+    (read-from-minibuffer (concat (if current-prefix-arg
+                                      (propertize "Recursive" 'face 'warning)
+                                    "Local")
+                                  " grep for PATTERN: ")
+                          nil nil nil 'prot-search--grep-hist)
+    current-prefix-arg))
+  (unless grep-command
+    (grep-compute-defaults))
+  (if recursive
+      (rgrep regexp "*" default-directory)
+    (lgrep regexp "*" default-directory)
+    (add-to-history 'prot-search--grep-hist regexp)))
+
+(defun prot-diff-buffer-dwim (&optional arg)
+  "Diff buffer with its file's last saved state, or run `vc-diff'.
+With optional prefix ARG (\\[universal-argument]) enable
+highlighting of word-wise changes (local to the current buffer)."
+  (interactive "P")
+  (let ((buf))
+    (if (buffer-modified-p)
+        (progn
+          (diff-buffer-with-file (current-buffer))
+          (setq buf "*Diff*"))
+      (vc-diff)
+      (setq buf "*vc-diff*"))
+    (when arg
+      (with-current-buffer (get-buffer buf)
+        (unless diff-refine
+          (setq-local diff-refine 'font-lock))))))
+(global-set-key [f6] 'prot-diff-buffer-dwim)
+
+;; -----------------------------------------
+
 ;; -----  Screen.
 
 ;; Try these further [2015-11-01 Sun 21:53]:
@@ -2591,7 +2599,10 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (global-set-key (kbd "C-x ,") 'shrink-window)
 (global-set-key (kbd "C-x .") 'enlarge-window) ; was set-fill-prefix
 
-(global-set-key [C-f10]      'bufler)
+(use-package bufler
+  ;; (global-set-key [C-f10]      'bufler)
+  :bind (([C-f10] .  bufler))
+)
 
 ;; Different from C-M-0 when more than 2 windows.
 (global-set-key [C-f2]
