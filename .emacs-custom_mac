@@ -186,7 +186,8 @@
  '(package-selected-packages
    '(elfeed-org elfeed-goodies elfeed wttrin try swiper smex magit loccur helm-bibtex goto-chg char-menu cdlatex browse-kill-ring))
  '(safe-local-variable-values
-   '((org-emphasis-alist
+   '((orgstruct-heading-prefix-regexp . ";;; ")
+     (org-emphasis-alist
       ("*" bold)
       ("/" italic)
       ("_" underline)
@@ -209,7 +210,7 @@
  '(font-latex-verbatim-face ((((class color) (background dark)) (:inherit nil :foreground "burlywood"))))
  '(org-verbatim ((t (:inherit shadow :foreground "#aef"))))
  '(region ((t (:background "grey40"))))
- '(selectrum-current-candidate ((t (:background "#3a3f5a")))))
+ '(selectrum-current-candidate ((t (:background "#8f8d72")))))
 
 ;; '(org-verbatim ((t (:inherit shadow :foreground "deepSkyBlue1"))))
 

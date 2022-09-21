@@ -14,6 +14,7 @@
 (put 'dired-find-alternate-file 'disabled nil)
 (mouse-avoidance-mode 'exile)        ; Move mouse pointer out of way of cursor.
 (setq visible-bell 1)                ; Turn off sound.
+(context-menu-mode)                  ; Right click instead of middle button.
 
 ;; No menus, but can turn back on with keypress.
 (menu-bar-mode 0)
@@ -27,11 +28,19 @@
 (require 'package)
 (setq package-archives
       '(
-        ("orgmode" . "https://orgmode.org/elpa/")
+;;        ("orgmode" . "https://orgmode.org/elpa/")
+        ("gnu-elpa" . "https://elpa.gnu.org/packages/")
         ("melpa" . "http://melpa.org/packages/")
+        ("melpa-stable" . "http://stable.melpa.org/packages/")
 ;;        ("gnu" . "http://elpa.gnu.org/packages/");  Only for AucTeX.
         )
       )
+
+(setq package-pinned-packages
+      '(
+        (org2blog . "melpa-stable")
+       ))
+
 ;; (setq package-quickstart t)
 (when (< emacs-major-version 27)
   (package-initialize))
@@ -48,12 +57,9 @@
 (require 'diminish)
 (require 'bind-key)
 (setq use-package-verbose t)
+
 ;; -----------------------------------------------------------------
 (bind-key* "C-z" 'scroll-up-keep-cursor)
-
-;; Next line need for bufler.
-;; https://github.com/alphapapa/bufler.el/issues/70
-(use-package map)
 
 (set-default-coding-systems 'utf-8)
 
@@ -106,6 +112,11 @@
 (interactive)
 "Return true if the system we are running on MacBook Pro 15"
 (string-equal system-name "MacBook-15-NJH.local"))
+
+(defun system-is-MBP22 ()
+(interactive)
+"Return true if the system we are running on MacBook Pro 15"
+(string-equal system-name "E-LOSXLNF2M"))
 
 (defun system-is-MBP13R ()
 (interactive)
@@ -211,9 +222,9 @@
 
 ;; ---------------------------------------------------------------
 ;; For edit-with-emacs extension.
-;; (when (require 'edit-server nil t)
-;;     (setq edit-server-new-frame nil)
-;;     (edit-server-start))
+(when (require 'edit-server nil t)
+    (setq edit-server-new-frame nil)
+    (edit-server-start))
 
 (use-package edit-server
   :ensure t
@@ -256,13 +267,16 @@
 ;;   (define-key isearch-mode-map [remap isearch-query-replace-regexp] #'anzu-isearch-query-replace-regexp)
 ;; )
 
-                                        ; ----------------------------------------------------------------------
+; ----------------------------------------------------------------------
 ;; For latest ORG mode downloaded by me.
 ;; But now I use Elpa.
 ; (add-to-list 'load-path "~/Dropbox/elisp/org/lisp")
 ;; Next line seems needed to make org functions available outside org,
 ;; before org has been invoked (C-c d above).
-(require 'org-install)
+; (require 'org-install)
+(require 'org)
+;; Does this help with Org 9.5?.  No!
+; (use-package org)
 
 (setq org-clock-sound "C:\\Windows\\Media\\Alarm01.wav")
 
@@ -445,6 +459,7 @@
     (global-set-key (kbd "C-0") 'xsteve-ido-choose-from-recentf))
 (if (system-is-windows)
     (global-set-key (kbd "C-0") 'ido-recentf-open))
+(global-set-key (kbd "C-S-0") 'consult-recent-file)
 
 ; ----------------------------------------------------------------
 ; Interactive macro expansion as used by Jwiegley.
@@ -581,31 +596,50 @@
 ;;     (lambda (fpath) (shell-command
 ;;              (concat "start /pgm SumatraPDF.exe -reuse-instance " fpath )))))
 
+;; ;; -----------------------------------------------------------------
+;; (use-package bibtex-actions
+;;   :bind (("C-c b" . bibtex-actions-insert-citation)
+;;          :map minibuffer-local-map
+;;          ("M-b" . bibtex-actions-insert-preset))
+;;   :after (embark bibtex-completion)
+;;   :config
+;;   ;; Make the 'bibtex-actions' bindings and targets available to `embark'.
+;;   (add-to-list 'embark-target-finders 'bibtex-actions-citation-key-at-point)
+;;   (add-to-list 'embark-keymap-alist '(bib-reference . bibtex-actions-map))
+;;   (add-to-list 'embark-keymap-alist '(citation-key . bibtex-actions-buffer-map))
+;;   ;; (setq bibtex-actions-bibliography '("~/bib/references.bib"))
+;;   ;; Next line causes error
+;;   ;; (setq bibtex-actions-bibliography bibtex-completion-library-path)
+;;   (setq bibtex-actions-bibliography
+;;       '("~/texmf/bibtex/bib/la.bib"
+;;         "~/texmf/bibtex/bib/misc.bib"
+;;         "~/texmf/bibtex/bib/njhigham.bib"
+;;         "~/texmf/bibtex/bib/njhigham_extra.bib"
+;;         ))
+;;   )
+
+(use-package citar
+  :bind (("C-c b" . citar-insert-citation)
+         :map minibuffer-local-map
+         ("M-b" . citar-insert-preset))
+  :custom
+  (citar-bibliography '("~/texmf/bibtex/bib/la.bib"
+        "~/texmf/bibtex/bib/misc.bib"
+        "~/texmf/bibtex/bib/njhigham.bib"
+        "~/texmf/bibtex/bib/njhigham_extra.bib"
+        ))
+)
+
+  ;; use consult-completing-read for enhanced interface
+(advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
+;; -----------------------------------------------------------------
+
 (if (system-is-windows)
 (setq bibtex-completion-pdf-open-function       ;; Open PDF in Sumatra
 ;; (setq bibtex-completion-open-pdf       ;; Open PDF in Sumatra
 ;;  (setq helm-bibtex-open-pdf       ;; Open PDF in Sumatra
     (lambda (fpath) (shell-command
              (concat "start /pgm SumatraPDF.exe -reuse-instance " fpath )))))
-;; -----------------------------------------------------------------
-(use-package bibtex-actions
-  :bind (("C-c b" . bibtex-actions-insert-citation)
-         :map minibuffer-local-map
-         ("M-b" . bibtex-actions-insert-preset))
-  :after embark
-  :config
-  ;; Make the 'bibtex-actions' bindings and targets available to `embark'.
-  (add-to-list 'embark-target-finders 'bibtex-actions-citation-key-at-point)
-  (add-to-list 'embark-keymap-alist '(bibtex . bibtex-actions-map))
-  (add-to-list 'embark-keymap-alist '(citation-key . bibtex-actions-buffer-map))
-  ;; Make sure to set this to ensure 'bibtex-actions-open-link' command works correctly.
-  (bibtex-completion-additional-search-fields '(doi url))
-  (bibtex-completion-bibliography '("~/bib/references.bib")))
-
-;; use consult-completing-read for enhanced interface
-(advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
-
-;; -----------------------------------------------------------------
 
 ;; Can't get this to work.  Nothing specfically on this found via Google.
 ;; I want to use this in all modes.
@@ -784,7 +818,9 @@
          ("C-h a" . consult-apropos))
   :config
       (setq consult-project-root-function #'vc-root-dir)
-  )
+      )
+
+(use-package consult-flyspell)
 
 (use-package embark
   :bind
@@ -809,8 +845,12 @@
   ;;       embark-become-indicator embark-action-indicator)
   ;; )
 (add-hook 'org-mode-hook '(lambda ()
-          (local-set-key (kbd "C-#") ' embark-act)
+          (local-set-key (kbd "C-#") 'embark-act)
           ))
+
+; Cmd-Option-3 (#) for Mac.
+(if (system-is-mac)
+    (global-set-key (kbd "M-s-3") 'embark-act)) ;; s = cmd
 
 ;; Doesn't work for me - has no effect.
 ;; https://github.com/minad/marginalia
@@ -973,6 +1013,13 @@ Each subinput is quoted and the results are joined with \".*\"."
 ;; (load-file "~/Dropbox/mymacros.macs")
 ;; (global-set-key (kbd "C-c n") 'norm2); Fails due to assumed search term.
 
+;; Replace /text/ by \term{text}
+;  Doesn't work properly - grabs too much!
+(defun make-term()
+  (interactive)
+  (query-replace-regexp "/\\(.*\\)/" "\\\\term{\\1}")
+)
+
 (fset 'myequation
    (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([kp-home 92 98 101 103 105 110 123 101 113 117 97 116 105 111 110 125 92 110 111 116 97 103 return return 92 101 110 100 123 101 113 117 97 116 105 111 110 125 kp-home kp-up] 0 "%d")) arg)))
 
@@ -1031,7 +1078,13 @@ Each subinput is quoted and the results are joined with \".*\"."
 ;; (global-set-key [S-f12] 'git-gutter-mode)
 (use-package git-gutter
   :bind (("S-<f12>" . git-gutter-mode)
-))
+         ))
+
+(use-package titlecase
+    :config
+  (define-key embark-heading-map "t" #'titlecase-line)
+  (define-key embark-region-map "t" #'titlecase-region)
+)
 
 ;;------------------------
 ;; Case changes
@@ -1039,7 +1092,8 @@ Each subinput is quoted and the results are joined with \".*\"."
 (global-set-key [f8]     'toggle-case)
 ;; (global-set-key [C-f8]   'downcase-word)
 ;; (global-set-key [S-f8]   'capitalize-word)
-(global-set-key [M-f8]   'title-case-string-region-or-line)
+;; (global-set-key [M-f8]   'title-case-string-region-or-line)
+(global-set-key [M-f8]   'titlecase-dwim)
 ;; (global-set-key [S-M-f8] 'upcase-word)
 
 ;; ;; https://github.com/mrkkrp/fix-word
@@ -1316,7 +1370,7 @@ Emacs buffers are those whose name starts with *."
   ("h"   (dired "~/") "home")
 )
 
-(global-set-key (kbd "M-<f5>")   'hydra-zoom/body)
+;; (global-set-key (kbd "M-<f4>")   'hydra-zoom/body)
 (defhydra hydra-zoom (:color red)
     "zoom"
     ("g" text-scale-increase "in")
@@ -1451,7 +1505,7 @@ environments around point)"
 ;; [2019-01-02 Wed 19:45] removed next block as I'm now getting
 ;; "File mode specification error: (void-variable latex-extra-mode-map)"
 ;; and this is stopping other hooks running, notably AucTeX master file
-;; is not working.
+;; is not working.  [2022-05-04 Wed 12:45] Still clashes with master file.
 ;; [2019-01-03 Thu 18:17] Could check if this was related to Org problems.
 ;;
 ;; (add-hook 'LaTeX-mode-hook #'latex-extra-mode) ; Activate latex-extra
@@ -1463,7 +1517,7 @@ environments around point)"
 
 ;; (add-hook 'LaTeX-mode-hook
 ;; 	  '(lambda()
-;;      	     (local-unset-key (kbd "C-c C-d")) ; Prefer date.
+;; 	     (local-unset-key (kbd "C-c C-d")) ; Prefer date.
 ;; 	     ))
 
 ;; ----------------------------------------------------------
@@ -1733,7 +1787,6 @@ Works in Microsoft Windows, Mac OS X, Linux."
 ;; (add-to-list 'load-path "~/Dropbox/elisp/mhayashi1120-Emacs-wgrep-f701229")
 (use-package wgrep)
 
-
 ;; -----------------------------------------
 ;; From https://protesilaos.com/codelog/2021-07-24-emacs-misc-custom-commands/
 
@@ -1808,6 +1861,12 @@ highlighting of word-wise changes (local to the current buffer)."
 (setq default-frame-alist
       '((top . 35) (left . 550)      ; Little effect with smaller values!
         (width . 80) (height . 35)
+        )))
+
+(if (system-is-MBP22)
+(setq default-frame-alist
+      '((top . 35) (left . 490)
+        (width . 80) (height . 30)
         )))
 
 (if (system-is-MBP13R)
@@ -2250,6 +2309,19 @@ point reaches the beginning or end of the buffer, stop there."
 (setq ibuffer-use-header-line t)
 (global-set-key [C-f9] 'ibuffer)
 
+;; Bury ibuffer after selecting buffer.
+;; https://emacs.stackexchange.com/questions/53857/how-to-bury-ibuffer-when-switching-to-another-buffer
+(defun ibuffer-visit-buffer (&optional single)
+  "Visit the buffer on this line.
+If optional argument SINGLE is non-nil, then also ensure there is only
+one window."
+  (interactive "P")
+  (let ((buf (ibuffer-current-buffer t)))
+    (bury-buffer (current-buffer))
+    (switch-to-buffer buf)
+    (when single
+      (delete-other-windows))))
+
 ;; http://martinowen.net/blog/2010/02/tips-for-emacs-ibuffer.html
 ;; Can't get wildcards on name containing emacs to work.
 (setq ibuffer-saved-filter-groups
@@ -2377,6 +2449,9 @@ With argument ARG, do this that many times."
 ;; ----------------------------------------------
 ;; From \cite[p.~217]{pete15}:
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
+;; From Howard Abrams comment on above page, making tab call Hippie,
+;; which  normally requires M-/.
+(advice-add #'indent-for-tab-command :after #'hippie-expand)
 
 ;; Hippie expand.
 (setq hippie-expand-try-functions-list
@@ -2415,7 +2490,6 @@ With argument ARG, do this that many times."
 ;;         (hippie-expand nil)
 ;;        (indent-for-tab-command)))))
 (global-set-key (kbd "TAB") 'smart-tab)
-
 
 ;; ---------------------------------------------------
 ;; I've added the fullscreen, which works better, but it
@@ -2599,10 +2673,13 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
 (global-set-key (kbd "C-x ,") 'shrink-window)
 (global-set-key (kbd "C-x .") 'enlarge-window) ; was set-fill-prefix
 
-(use-package bufler
-  ;; (global-set-key [C-f10]      'bufler)
-  :bind (([C-f10] .  bufler))
-)
+;; ;; Next line need for bufler.
+;; ;; https://github.com/alphapapa/bufler.el/issues/70
+;; (use-package map)
+;; (use-package bufler
+;;   ;; (global-set-key [C-f10]      'bufler)
+;;   :bind (([C-f10] .  bufler))
+;; )
 
 ;; Different from C-M-0 when more than 2 windows.
 (global-set-key [C-f2]
@@ -3474,8 +3551,9 @@ the character typed."
 
 ;; From comment at https://nickhigham.wordpress.com/2016/01/06/managing-bibtex-files-with-emacs/
 (defvar bp/bibtex-fields-ignore-list
-  '("keywords" "abstract" "file" "issn" "eprint" "issue_date" "publisher"
-    "address" "articleno" "numpages" "acmid"))
+  '("keywords" "abstract" "file" "issn" "eprint" "issue_date"
+     ;"publisher" "address"
+     "articleno" "numpages" "acmid"))
 (defun bp/bibtex-clean-entry-hook ()
   (save-excursion
   (let (bounds)
@@ -3699,6 +3777,10 @@ the character typed."
 (setq font-latex-match-italic-command-keywords
       '(
         ;; ("cite" "[{")
+        ("ycite" "{")
+        ("term" "{")
+        ("bemph" "{")
+        ("remph" "{")
         ("iemph" "{")
         ("citet" "{")
         ))
@@ -3719,7 +3801,10 @@ the character typed."
 ;; PDF previewers.
 (if (system-is-windows)
 (progn
-(setq TeX-view-program-list '(("Sumatra" "\"SumatraPDF.exe\" -reuse-instance %o")))
+;; Next line is fix for this command no working for srereal months.
+  (setq TeX-view-program-list '(("Sumatra" "\"d:/bat/Sumatra.bat\" %o")))
+; Next line is what used to work.  
+; (setq TeX-view-program-list '(("Sumatra" "\"SumatraPDF.exe\" -reuse-instance %o")))
 ;; (setq TeX-view-program-list '(("Sumatra" "\"C:/Program Files (x86)/SumatraPDF/SumatraPDF.exe\" -reuse-instance %o")))
 ;; (setq TeX-view-program-list '(("Sumatra" "Sumatra_emacs.bat %o") ))
 (setq TeX-view-program-selection '((output-pdf "Sumatra") (output-dvi "dviout")))
@@ -3754,7 +3839,24 @@ the character typed."
    (concat "start /pgm Acrobat.exe "
    (file-name-sans-extension (buffer-file-name)) ".pdf" )
    ))
-(global-set-key [C-S-f5]'open-in-acrobat)
+(global-set-key [C-S-f5] 'open-in-acrobat)
+
+;; [2021-08-10 Tue 12:50] This is because C-c C-v has stopped working.
+(defun open-in-sumatra (arg)
+  "Open PDF of current LaTeX buffer in Acrobat."
+  (interactive "p")
+  (shell-command
+   (concat "start /pgm SumatraPDF.exe -reuse-instance "
+   (file-name-sans-extension (buffer-file-name)) ".pdf" )
+   ))
+(global-set-key [M-f5] 'open-in-sumatra)
+
+;; This is for use with Chapterbib because C-C C-g runs bibtex on do.tex.
+(defun run-bibtex ()
+   (interactive)
+   (TeX-save-document (TeX-master-file)) ;; From tex-buf.el.
+   (shell-command (concat "bibtex.bat "
+       (file-name-sans-extension (buffer-name)))))
 
 ;; http://tex.stackexchange.com/questions/24510/pdflatex-fails-within-emacs-app-but-works-in-terminal
 ;; This is needed on MBPro w/Mountain Lion and TeXLiVe 2012
@@ -3808,81 +3910,88 @@ behavior added."
 
 (global-set-key [remap keyboard-quit] #'keyboard-quit-context+)
 
-;;------------------------------------------------------------
-;; Question about how reliably this works.
-;; http://www.emacswiki.org/emacs/TN#toc8
-(require 'tex-buf)
-(defun TeX-command-default (name)
-  "Next TeX command to use. Most of the code is stolen from `TeX-command-query'."
-  (cond ((if (string-equal name TeX-region)
-			     (TeX-check-files (concat name "." (TeX-output-extension))
-					      (list name)
-					      TeX-file-extensions)
-			   (TeX-save-document (TeX-master-file)))
-			 TeX-command-default)
-			((and (memq major-mode '(doctex-mode latex-mode))
-			      (TeX-check-files (concat name ".bbl")
-					       (mapcar 'car
-						       (LaTeX-bibliography-list))
-					       BibTeX-file-extensions))
-			 ;; We should check for bst files here as well.
-			 TeX-command-BibTeX)
-			((TeX-process-get-variable name
-						   'TeX-command-next
-						   TeX-command-Show))
-			(TeX-command-Show)))
+;; ;;------------------------------------------------------------
+;; ;; Question about how reliably this works.
+;; ;; http://www.emacswiki.org/emacs/TN#toc8
+;; ;; There is no tex-buf in Auctex 13.1.3.
+;; ;; (require 'tex-buf)
+;; (defun TeX-command-default (name)
+;;   "Next TeX command to use. Most of the code is stolen from `TeX-command-query'."
+;;   (cond ((if (string-equal name TeX-region)
+;; 			     (TeX-check-files (concat name "." (TeX-output-extension))
+;; 					      (list name)
+;; 					      TeX-file-extensions)
+;; 			   (TeX-save-document (TeX-master-file)))
+;; 			 TeX-command-default)
+;; 			((and (memq major-mode '(doctex-mode latex-mode))
+;; 			      (TeX-check-files (concat name ".bbl")
+;; 					       (mapcar 'car
+;; 						       (LaTeX-bibliography-list))
+;; 					       BibTeX-file-extensions))
+;; 			 ;; We should check for bst files here as well.
+;; 			 TeX-command-BibTeX)
+;; 			((TeX-process-get-variable name
+;; 						   'TeX-command-next
+;; 						   TeX-command-Show))
+;; 			(TeX-command-Show)))
 
-;; NJH: added next line in place of the one after to stop viewer being called.
-(setq TeX-texify-Show nil)
-;; (defcustom TeX-texify-Show t "Start view-command at end of TeX-texify?" :type 'boolean :group 'TeX-command)
-(defcustom TeX-texify-max-runs-same-command 5 "Maximal run number of the same command" :type 'integer :group 'TeX-command)
+;; ;; NJH: added next line in place of the one after to stop viewer being called.
+;; (setq TeX-texify-Show nil)
+;; ;; (defcustom TeX-texify-Show t "Start view-command at end of TeX-texify?" :type 'boolean :group 'TeX-command)
+;; (defcustom TeX-texify-max-runs-same-command 5 "Maximal run number of the same command" :type 'integer :group 'TeX-command)
 
-(defun TeX-texify-sentinel (&optional proc sentinel)
-  "Non-interactive! Call the standard-sentinel of the current LaTeX-process.
-If there is still something left do do start the next latex-command."
-  (set-buffer (process-buffer proc))
-  (funcall TeX-texify-sentinel proc sentinel)
-  (let ((case-fold-search nil))
-    (when (string-match "\\(finished\\|exited\\)" sentinel)
-      (set-buffer TeX-command-buffer)
-      (unless (plist-get TeX-error-report-switches (intern (TeX-master-file)))
-	(TeX-texify)))))
+;; (defun TeX-texify-sentinel (&optional proc sentinel)
+;;   "Non-interactive! Call the standard-sentinel of the current LaTeX-process.
+;; If there is still something left do do start the next latex-command."
+;;   (set-buffer (process-buffer proc))
+;;   (funcall TeX-texify-sentinel proc sentinel)
+;;   (let ((case-fold-search nil))
+;;     (when (string-match "\\(finished\\|exited\\)" sentinel)
+;;       (set-buffer TeX-command-buffer)
+;;       (unless (plist-get TeX-error-report-switches (intern (TeX-master-file)))
+;; 	(TeX-texify)))))
 
-(defun TeX-texify ()
-  "Get everything done."
-  (interactive)
-  (let ((nextCmd (TeX-command-default (TeX-master-file)))
-	proc)
-    (if (and (null TeX-texify-Show)
-	     (equal nextCmd TeX-command-Show))
-	(when  (called-interactively-p 'any)
-	  (message "TeX-texify: Nothing to be done."))
-      (TeX-command nextCmd 'TeX-master-file)
-      (when (or (called-interactively-p 'any)
-		(null (boundp 'TeX-texify-count-same-command))
-		(null (boundp 'TeX-texify-last-command))
-		(null (equal nextCmd TeX-texify-last-command)))
-	(mapc 'make-local-variable '(TeX-texify-sentinel TeX-texify-count-same-command TeX-texify-last-command))
-	(setq TeX-texify-count-same-command 1))
-      (if (>= TeX-texify-count-same-command TeX-texify-max-runs-same-command)
-	  (message "TeX-texify: Did %S already %d times. Don't want to do it anymore." TeX-texify-last-command TeX-texify-count-same-command)
-	(setq TeX-texify-count-same-command (1+ TeX-texify-count-same-command))
-	(setq TeX-texify-last-command nextCmd)
-	(and (null (equal nextCmd TeX-command-Show))
-	     (setq proc (get-buffer-process (current-buffer)))
-	     (setq TeX-texify-sentinel (process-sentinel proc))
-	     (set-process-sentinel proc 'TeX-texify-sentinel))))))
+;; (defun TeX-texify ()
+;;   "Get everything done."
+;;   (interactive)
+;;   (let ((nextCmd (TeX-command-default (TeX-master-file)))
+;; 	proc)
+;;     (if (and (null TeX-texify-Show)
+;; 	     (equal nextCmd TeX-command-Show))
+;; 	(when  (called-interactively-p 'any)
+;; 	  (message "TeX-texify: Nothing to be done."))
+;;       (TeX-command nextCmd 'TeX-master-file)
+;;       (when (or (called-interactively-p 'any)
+;; 		(null (boundp 'TeX-texify-count-same-command))
+;; 		(null (boundp 'TeX-texify-last-command))
+;; 		(null (equal nextCmd TeX-texify-last-command)))
+;; 	(mapc 'make-local-variable '(TeX-texify-sentinel TeX-texify-count-same-command TeX-texify-last-command))
+;; 	(setq TeX-texify-count-same-command 1))
+;;       (if (>= TeX-texify-count-same-command TeX-texify-max-runs-same-command)
+;; 	  (message "TeX-texify: Did %S already %d times. Don't want to do it anymore." TeX-texify-last-command TeX-texify-count-same-command)
+;; 	(setq TeX-texify-count-same-command (1+ TeX-texify-count-same-command))
+;; 	(setq TeX-texify-last-command nextCmd)
+;; 	(and (null (equal nextCmd TeX-command-Show))
+;; 	     (setq proc (get-buffer-process (current-buffer)))
+;; 	     (setq TeX-texify-sentinel (process-sentinel proc))
+;; 	     (set-process-sentinel proc 'TeX-texify-sentinel))))))
 
-(add-hook 'LaTeX-mode-hook '(lambda () (local-set-key (kbd "C-c C-y") 'TeX-texify)))
+;; (add-hook 'LaTeX-mode-hook '(lambda () (local-set-key (kbd "C-c C-y") 'TeX-texify)))
 
 ;; Run make.bat file.  For particular use to run makeindex.
 (if (system-is-windows)
+(progn
 (defun make()
    (interactive)
    (TeX-save-document (TeX-master-file)) ;; From tex-buf.el.
    (shell-command (concat "make.bat "
        (file-name-sans-extension buffer-file-name))))
-)
+(defun makedo()
+   (interactive)
+   (TeX-save-document (TeX-master-file)) ;; From tex-buf.el.
+   (shell-command (concat "makedo.bat "
+       (file-name-sans-extension buffer-file-name))))
+))
 
 (defun TeX-remove-macro ()
   "Remove current macro and return `t'.  If no macro at point,
@@ -4118,6 +4227,13 @@ return `nil'."
   (org-insert-time-stamp nil t t nil nil nil))
 (global-set-key (kbd "C-c d") 'my-insert-inactive-timestamp) ; Global!
 
+(defun my-insert-inactive-timestamp-day ()
+  (interactive)
+;  (beginning-of-line)
+;  (insert "   ")
+  (org-insert-time-stamp nil nil nil nil nil nil))
+(global-set-key (kbd "C-c y") 'my-insert-inactive-timestamp-day) ; Global!
+
 ;; From http://doc.norang.ca/org-mode.html
 (defun my-insert-TODO ()
   (interactive)
@@ -4143,6 +4259,23 @@ return `nil'."
 ; Make next keypress global, since I can't make C-M-... keypresses
 ; local in ORG mode (same problem with 'my-insert-TODO).
 (global-set-key (kbd "C-M-u") 'my-top-level)
+
+;; Not working.  Only executes one command, whatever it is!
+;; And the last part doesn't do anything at all.
+(defun latex-subtree ()
+  (interactive)
+;;  (progn
+    (my-top-level)
+;;     (org-narrow-to-subtree)
+                                        ;  https://emacs.stackexchange.com/questions/2461/how-can-i-simulate-an-arbitary-key-event-from-elisp
+;;   (call-interactively (global-key-binding "f5"))
+;;   (call-interactively (local-key-binding "f5"))
+;;      (lambda () (interactive) (save-buffer)
+        (org-open-file (org-latex-export-to-pdf))
+     ;; ;;)
+   ;; )
+   )
+
 ; (global-set-key [S-f11] 'org2blog/wp-post-subtree)
 (global-set-key [S-f11] 'org2blog-subtree-post-save)
 (global-set-key [M-f11] 'org2blog-buffer-post-publish)
@@ -4388,15 +4521,46 @@ table, obtained by prompting the user."
 ;; For stripe-table-mode
 (use-package stripe-buffer)
 
+;; https://christopherfin.com/writing/emacs-writing.html
+;; Call with M-x org-wc.
+(use-package org-wc)
+;; Doesn't work!
+(use-package mw-thesaurus)
+(setq mw-thesaurus--api-key "da9ccb24-4cea-4911-aae1-b62edb930293")
+
 ;; Reset gc threshold that was increased at start.
 (setq gc-cons-threshold (* 2 1000 1000))
 
 ;; New to Emacs 27 and mentioned in \cite{peta20}.
-;; Automatically loaded, it seems.
-;; (use-package project)
+;; Automatically loaded, it seems. Need to load to get key bindings.
+(use-package project)
+
+(add-to-list 'load-path "~/dropbox/emacs-packages/logos")
+
+;; https://protesilaos.com/emacs/logos
+(require 'logos)
+
+;; If you want to use outlines instead of page breaks (the ^L)
+(setq logos-outlines-are-pages t)
+(setq logos-outline-regexp-alist
+      `((emacs-lisp-mode . "^;;;+ ")
+        (org-mode . "^\\*+ +")
+        (t . ,(or outline-regexp logos--page-delimiter))))
+
+;; glue code to expand an Org/Outline heading
+(defun logos--reveal-entry ()
+  "Reveal Org or Outline entry."
+  (cond
+   ((and (eq major-mode 'org-mode)
+         (org-at-heading-p))
+    (org-show-subtree))
+   ((or (eq major-mode 'outline-mode)
+        (bound-and-true-p outline-minor-mode))
+    (outline-show-subtree))))
+
 
 ;;; * Local Variables
 ;; Local Variables:
-;; eval: (orgstruct-mode 1).
-;; orgstruct-heading-prefix-regexp: ";;; ";
-; End:
+;; eval: (orgstruct-mode 1)
+;; orgstruct-heading-prefix-regexp: ";;; "
+;; End:

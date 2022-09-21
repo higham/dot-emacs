@@ -5,11 +5,14 @@
 ;; Added [2016-03-30 Wed 16:06]
 (add-to-list 'exec-path "c:\\program files\\git\\bin")
 (add-to-list 'exec-path "C:\\Program Files (x86)\\Pandoc")
+;; [2021-10-16 Sat 20:28] Does next line help find commands?
+(add-to-list 'exec-path "e:\\cygwin\\bin")
 
 ;; Necessary because of Emacs 24 bug.
 ;; (set-default-font "Consolas-12:bold"nil)
 ;; (set-frame-font "Consolas-12:bold"nil)
 
+;; See if this solves C-c C-v problem for Sumatra. [2021-08-09 Mon 17:47]
 ;; (setq TeX-shell "d:/tcmd/tcc.exe")  ;; On my desktops.
 ;; (if (system-is-XPS)
 ;; (setq TeX-shell "c:/tcmd/tcc.exe")
@@ -105,7 +108,6 @@
        ("editor" nil nil 0)
        ("title" "Title of the book"))
       (("publisher")
-       ("address")
        ("year"))
       (("edition" "Edition of the book as a capitalized English word")
        ("volume" "Volume of the book in the series")
@@ -145,7 +147,6 @@
      ("techreport" "Technical Report"
       (("author")
        ("title" "Title of the technical report (BibTeX converts it to lowercase)")
-       ("institution" "Sponsoring institution of the report")
        ("year"))
       nil
       (("type" "Type of the report (if other than \"technical report\")")
@@ -202,9 +203,19 @@
      (verbatim . verb)))
  '(package-hidden-regexps '("\\`auctex\\'"))
  '(package-selected-packages
-   '(bibtex-actions yasnippet wttrin wrap-region which-key wgrep wc-mode use-package-ensure-system-package undo-tree try switch-window stripe-buffer smex shrink-whitespace shell-pop scratch ripgrep project ox-pandoc outshine orgalist org2blog orderless matlab-mode markdown-mode marginalia magit-popup magit macrostep latexdiff latex-extra ivy-rich ivy-bibtex imenu-anywhere icomplete-vertical ibuffer-vc helpful helm-bibtex graphql goto-chg git-timemachine git-gutter ghub fix-word fireplace fill-column-indicator expand-region esup embark-consult elfeed-goodies edit-server dumb-jump dired-quick-sort diminish deft define-word crux counsel clippy char-menu bug-hunter bufler browse-kill-ring avy-embark-collect auto-package-update auctex-latexmk anzu ace-window ace-popup-menu ace-link ace-jump-zap ace-jump-buffer))
+   '(auctex consult-flyspell titlecase org org-real bibtex-actions yasnippet wttrin wrap-region which-key wgrep wc-mode use-package-ensure-system-package undo-tree try switch-window stripe-buffer smex shrink-whitespace shell-pop scratch ripgrep project ox-pandoc outshine orgalist org2blog orderless matlab-mode markdown-mode marginalia magit-popup magit macrostep latexdiff latex-extra ivy-rich ivy-bibtex imenu-anywhere icomplete-vertical ibuffer-vc helpful helm-bibtex graphql goto-chg git-timemachine git-gutter ghub fix-word fireplace fill-column-indicator expand-region esup embark-consult elfeed-goodies edit-server dumb-jump dired-quick-sort diminish deft define-word crux counsel clippy char-menu bug-hunter bufler browse-kill-ring avy-embark-collect auto-package-update auctex-latexmk anzu ace-window ace-popup-menu ace-link ace-jump-zap ace-jump-buffer))
  '(safe-local-variable-values
-   '((orgstruct-heading-prefix-regexp . ";;; ")
+   '((TeX-auto-save . t)
+     (TeX-parse-self . t)
+     (org-emphasis-alist
+      ("***" bold)
+      ("/" italic)
+      ("_" underline)
+      ("=" org-verbatim verbatim)
+      ("~" org-code verbatim)
+      ("+"
+       (:strike-through nil)))
+     (orgstruct-heading-prefix-regexp . ";;; ")
      (TeX-command-extra-options . "-shell-escape --enable-write18 --synctex=1")
      (org-emphasis-alist
       ("*" bold)
